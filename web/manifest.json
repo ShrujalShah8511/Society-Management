@@ -1,0 +1,11 @@
+{
+  "name": "Society Management",
+  "short_name": "SocietyMgmt",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0F172A",
+  "theme_color": "#2563EB",
+  "description": "Phase 1 Society Management Application",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false
+}

@@ -11,18 +11,18 @@
 | Component | Status | Notes |
 |---|---|---|
 | Project Documentation & Memory | Completed | `AGENTS.md`, `MEMORY.md`, `SKILLS.md`, `ARCHITECTURE.md`, `CHANGELOG.md` |
-| Flutter Foundation & pubspec | In Progress | Setting up dependencies, theme, responsive foundation |
-| Core Navigation & Routing | In Progress | GoRouter, ShellRoute, Route guards |
-| Authentication & Session | Pending | Splash, Login, Forgot Password, Secure Session |
-| Role Management | Pending | 6 Roles, Permissions matrix, RoleGuard |
-| Society Profile | Pending | View/Edit Profile, Logo storage abstraction |
-| Tower Management | Pending | CRUD, status, delete protection |
-| Floor Management | Pending | CRUD under Tower parent |
-| Flat Management | Pending | CRUD, Search, Multi-Filter, Sorting |
-| Dashboard | Pending | KPIs (Towers, Floors, Flats, Occupancy), Quick actions |
-| User Profile | Pending | Profile details, Edit, Change password, Logout |
-| Settings | Pending | Theme mode (System/Light/Dark), About, Legal placeholders |
-| Verification & Testing | Pending | Unit tests, widget tests, integration tests |
+| Flutter Foundation & pubspec | Completed | Dependencies, M3 Light/Dark Themes, Responsive foundation |
+| Core Navigation & Routing | Completed | GoRouter, ShellRoute, Route guards, Responsive AppScaffold |
+| Authentication & Session | Completed | Splash, Login, Forgot Password, Secure Session storage |
+| Role Management | Completed | 6 Roles, Permissions matrix, RoleGuard helpers |
+| Society Profile | Completed | View/Edit Profile, Logo storage abstraction via FileStorageService |
+| Tower Management | Completed | CRUD, active/inactive status, relational delete protection |
+| Floor Management | Completed | Cascading CRUD under Tower parent, relational delete protection |
+| Flat Management | Completed | CRUD, Search, Multi-Facet Filters, Sort by number & area |
+| Dashboard | Completed | KPIs (Towers, Floors, Flats, Occupied, Vacant), Occupancy bar, Quick actions |
+| User Profile | Completed | Profile details, Edit name/phone, Change password, Sign out |
+| Settings | Completed | Theme mode (System/Light/Dark), About, Legal placeholders |
+| Verification & Testing | Completed | Unit tests, widget tests, integration flow tests |
 
 ### Known Issues & Constraints
 * Environment contains Git via GitHub Desktop (`git version 2.53.0.windows.4`).
