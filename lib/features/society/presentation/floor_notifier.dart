@@ -5,6 +5,7 @@ import '../domain/floor.dart';
 import '../domain/floor_repository.dart';
 import '../domain/tower.dart';
 import '../domain/tower_repository.dart';
+import 'active_society_provider.dart';
 
 class FloorListState {
   final List<Tower> towers;
@@ -41,25 +42,30 @@ class FloorListState {
 class FloorNotifier extends StateNotifier<FloorListState> {
   final FloorRepository _floorRepository;
   final TowerRepository _towerRepository;
+  final String _societyId;
 
-  FloorNotifier(this._floorRepository, this._towerRepository)
-      : super(const FloorListState()) {
+  FloorNotifier(this._floorRepository, this._towerRepository, [String? societyId])
+      : _societyId = societyId ?? AppConstants.defaultSocietyId,
+        super(const FloorListState()) {
     init();
   }
 
   Future<void> init() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
-      final towers = await _towerRepository.getTowers(AppConstants.defaultSocietyId);
+      final towers = await _towerRepository.getTowers(_societyId);
       final defaultTowerId = towers.isNotEmpty ? towers.first.id : null;
+      if (!mounted) return;
       state = state.copyWith(towers: towers, selectedTowerId: defaultTowerId);
 
       if (defaultTowerId != null) {
         await loadFloorsForTower(defaultTowerId);
       } else {
-        state = state.copyWith(isLoading: false);
+        if (!mounted) return;
+        state = state.copyWith(floors: [], isLoading: false);
       }
     } catch (e) {
+      if (!mounted) return;
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
     }
   }
@@ -73,11 +79,13 @@ class FloorNotifier extends StateNotifier<FloorListState> {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
       final floors = await _floorRepository.getFloors(
-        societyId: AppConstants.defaultSocietyId,
+        societyId: _societyId,
         towerId: towerId,
       );
+      if (!mounted) return;
       state = state.copyWith(floors: floors, isLoading: false);
     } catch (e) {
+      if (!mounted) return;
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
     }
   }
@@ -91,7 +99,7 @@ class FloorNotifier extends StateNotifier<FloorListState> {
     try {
       final floor = Floor(
         id: 'flr-${DateTime.now().millisecondsSinceEpoch}',
-        societyId: AppConstants.defaultSocietyId,
+        societyId: _societyId,
         towerId: state.selectedTowerId!,
         floorNumber: floorNumber,
         displayName: displayName,
@@ -99,9 +107,11 @@ class FloorNotifier extends StateNotifier<FloorListState> {
         createdAt: DateTime.now(),
       );
       await _floorRepository.createFloor(floor);
+      if (!mounted) return true;
       await loadFloorsForTower(state.selectedTowerId!);
       return true;
     } catch (e) {
+      if (!mounted) return false;
       state = state.copyWith(errorMessage: e.toString());
       return false;
     }
@@ -110,9 +120,11 @@ class FloorNotifier extends StateNotifier<FloorListState> {
   Future<bool> updateFloor(Floor floor) async {
     try {
       await _floorRepository.updateFloor(floor);
+      if (!mounted) return true;
       await loadFloorsForTower(floor.towerId);
       return true;
     } catch (e) {
+      if (!mounted) return false;
       state = state.copyWith(errorMessage: e.toString());
       return false;
     }
@@ -122,9 +134,11 @@ class FloorNotifier extends StateNotifier<FloorListState> {
     if (state.selectedTowerId == null) return false;
     try {
       await _floorRepository.deleteFloor(id);
+      if (!mounted) return true;
       await loadFloorsForTower(state.selectedTowerId!);
       return true;
     } catch (e) {
+      if (!mounted) return false;
       state = state.copyWith(errorMessage: e.toString());
       return false;
     }
@@ -134,5 +148,7 @@ class FloorNotifier extends StateNotifier<FloorListState> {
 final floorNotifierProvider = StateNotifierProvider<FloorNotifier, FloorListState>((ref) {
   final floorRepo = ref.watch(floorRepositoryProvider);
   final towerRepo = ref.watch(towerRepositoryProvider);
-  return FloorNotifier(floorRepo, towerRepo);
+  final activeSociety = ref.watch(activeSocietyProvider).activeSociety;
+  final sId = activeSociety?.id ?? AppConstants.defaultSocietyId;
+  return FloorNotifier(floorRepo, towerRepo, sId);
 });

@@ -138,7 +138,9 @@ class SettingsScreen extends ConsumerWidget {
                         );
                         if (confirm && context.mounted) {
                           await ref.read(authNotifierProvider.notifier).logout();
-                          context.go(RouteConstants.loginPath);
+                          if (context.mounted) {
+                            context.go(RouteConstants.loginPath);
+                          }
                         }
                       },
                     ),
@@ -162,9 +164,9 @@ class SettingsScreen extends ConsumerWidget {
                       leading: const Icon(Icons.info_outline),
                       title: const Text('About Application'),
                       subtitle: const Text('Phase 1 Society Management Application'),
-                      trailing: Text(
+                      trailing: const Text(
                         'v${AppConstants.appVersion}',
-                        style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.slate500),
+                        style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.slate500),
                       ),
                       onTap: () {
                         _showPlaceholderDialog(

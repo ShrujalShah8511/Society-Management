@@ -13,15 +13,22 @@ import '../features/role/domain/role.dart';
 import '../features/settings/presentation/settings_screen.dart';
 import '../features/society/presentation/flat_list_screen.dart';
 import '../features/society/presentation/floor_list_screen.dart';
+import '../features/society/presentation/society_list_screen.dart';
 import '../features/society/presentation/society_profile_screen.dart';
 import '../features/society/presentation/tower_list_screen.dart';
 
+class _RouterRefreshNotifier extends ChangeNotifier {
+  _RouterRefreshNotifier(Ref ref) {
+    ref.listen(authNotifierProvider, (_, __) => notifyListeners());
+  }
+}
+
 final routerProvider = Provider<GoRouter>((ref) {
-  final authNotifier = ref.watch(authNotifierProvider.notifier);
+  final refreshNotifier = _RouterRefreshNotifier(ref);
 
   return GoRouter(
-    initialLocation: RouteConstants.splashPath,
-    refreshListenable: authNotifier,
+    initialLocation: RouteConstants.loginPath,
+    refreshListenable: refreshNotifier,
     redirect: (BuildContext context, GoRouterState state) {
       final authState = ref.read(authNotifierProvider);
       final isAuth = authState.isAuthenticated;
@@ -79,6 +86,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: RouteConstants.dashboardPath,
             builder: (context, state) => const DashboardScreen(),
+          ),
+          GoRoute(
+            path: RouteConstants.societiesPath,
+            builder: (context, state) => const SocietyListScreen(),
           ),
           GoRoute(
             path: RouteConstants.societyProfilePath,

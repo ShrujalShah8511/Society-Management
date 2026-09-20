@@ -18,11 +18,11 @@ class AuthMockDataSource implements AuthDataSource {
     final societyAdmin = User(
       id: 'usr-admin-001',
       email: 'admin@society.com',
-      name: 'Rajesh Sharma',
+      name: 'Shrujal Shah',
       mobile: '9876543210',
       role: Role.societyAdmin,
       societyId: AppConstants.defaultSocietyId,
-      societyName: 'Grand Palm Heights Society',
+      societyName: 'Shyam Heights',
       profilePhotoUrl: null,
       createdAt: DateTime.now().subtract(const Duration(days: 90)),
     );
@@ -30,11 +30,11 @@ class AuthMockDataSource implements AuthDataSource {
     final superAdmin = User(
       id: 'usr-super-001',
       email: 'superadmin@society.com',
-      name: 'Amit Patel',
+      name: 'Shrujal Shah',
       mobile: '9998887776',
       role: Role.superAdmin,
       societyId: AppConstants.defaultSocietyId,
-      societyName: 'Grand Palm Heights Society',
+      societyName: 'Shyam Heights',
       profilePhotoUrl: null,
       createdAt: DateTime.now().subtract(const Duration(days: 120)),
     );
@@ -46,7 +46,7 @@ class AuthMockDataSource implements AuthDataSource {
       mobile: '9123456780',
       role: Role.resident,
       societyId: AppConstants.defaultSocietyId,
-      societyName: 'Grand Palm Heights Society',
+      societyName: 'Shyam Heights',
       profilePhotoUrl: null,
       createdAt: DateTime.now().subtract(const Duration(days: 45)),
     );
@@ -58,7 +58,7 @@ class AuthMockDataSource implements AuthDataSource {
       mobile: '9123456781',
       role: Role.committeeMember,
       societyId: AppConstants.defaultSocietyId,
-      societyName: 'Grand Palm Heights Society',
+      societyName: 'Shyam Heights',
       profilePhotoUrl: null,
       createdAt: DateTime.now().subtract(const Duration(days: 60)),
     );
@@ -70,7 +70,7 @@ class AuthMockDataSource implements AuthDataSource {
       mobile: '9123456782',
       role: Role.security,
       societyId: AppConstants.defaultSocietyId,
-      societyName: 'Grand Palm Heights Society',
+      societyName: 'Shyam Heights',
       profilePhotoUrl: null,
       createdAt: DateTime.now().subtract(const Duration(days: 30)),
     );
@@ -82,7 +82,7 @@ class AuthMockDataSource implements AuthDataSource {
       mobile: '9123456783',
       role: Role.staff,
       societyId: AppConstants.defaultSocietyId,
-      societyName: 'Grand Palm Heights Society',
+      societyName: 'Shyam Heights',
       profilePhotoUrl: null,
       createdAt: DateTime.now().subtract(const Duration(days: 20)),
     );

@@ -45,6 +45,16 @@ void main() {
       expect(session.user.role, Role.societyAdmin);
     });
 
+    test('Successful login as Super Admin returns superAdmin role', () async {
+      final session = await authRepository.login(
+        emailOrMobile: 'superadmin@society.com',
+        password: 'super123',
+      );
+
+      expect(session.user.role, Role.superAdmin);
+      expect(session.user.name, 'Shrujal Shah');
+    });
+
     test('Login with incorrect password throws AuthFailure', () async {
       expect(
         () => authRepository.login(
@@ -116,11 +126,11 @@ void main() {
 
       final updated = await authRepository.updateProfile(
         userId: session.user.id,
-        name: 'Rajesh S. Sharma',
+        name: 'Shrujal Shah Updated',
         mobile: '9876543299',
       );
 
-      expect(updated.name, 'Rajesh S. Sharma');
+      expect(updated.name, 'Shrujal Shah Updated');
       expect(updated.mobile, '9876543299');
     });
   });

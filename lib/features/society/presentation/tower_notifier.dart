@@ -3,6 +3,7 @@ import '../../../app/providers.dart';
 import '../../../core/constants/app_constants.dart';
 import '../domain/tower.dart';
 import '../domain/tower_repository.dart';
+import 'active_society_provider.dart';
 
 class TowerListState {
   final List<Tower> towers;
@@ -43,17 +44,23 @@ class TowerListState {
 
 class TowerNotifier extends StateNotifier<TowerListState> {
   final TowerRepository _repository;
+  final String _societyId;
 
-  TowerNotifier(this._repository) : super(const TowerListState()) {
+  TowerNotifier(this._repository, [String? societyId])
+      : _societyId = societyId ?? AppConstants.defaultSocietyId,
+        super(const TowerListState()) {
     loadTowers();
   }
 
-  Future<void> loadTowers() async {
+  Future<void> loadTowers([String? societyId]) async {
+    final sId = societyId ?? _societyId;
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
-      final list = await _repository.getTowers(AppConstants.defaultSocietyId);
+      final list = await _repository.getTowers(sId);
+      if (!mounted) return;
       state = state.copyWith(towers: list, isLoading: false);
     } catch (e) {
+      if (!mounted) return;
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
     }
   }
@@ -71,7 +78,7 @@ class TowerNotifier extends StateNotifier<TowerListState> {
     try {
       final newTower = Tower(
         id: 'tow-${DateTime.now().millisecondsSinceEpoch}',
-        societyId: AppConstants.defaultSocietyId,
+        societyId: _societyId,
         name: name,
         description: description,
         floorCount: floorCount,
@@ -79,9 +86,11 @@ class TowerNotifier extends StateNotifier<TowerListState> {
         createdAt: DateTime.now(),
       );
       await _repository.createTower(newTower);
+      if (!mounted) return true;
       await loadTowers();
       return true;
     } catch (e) {
+      if (!mounted) return false;
       state = state.copyWith(errorMessage: e.toString());
       return false;
     }
@@ -90,9 +99,11 @@ class TowerNotifier extends StateNotifier<TowerListState> {
   Future<bool> updateTower(Tower tower) async {
     try {
       await _repository.updateTower(tower);
+      if (!mounted) return true;
       await loadTowers();
       return true;
     } catch (e) {
+      if (!mounted) return false;
       state = state.copyWith(errorMessage: e.toString());
       return false;
     }
@@ -101,9 +112,11 @@ class TowerNotifier extends StateNotifier<TowerListState> {
   Future<bool> deleteTower(String id) async {
     try {
       await _repository.deleteTower(id);
+      if (!mounted) return true;
       await loadTowers();
       return true;
     } catch (e) {
+      if (!mounted) return false;
       state = state.copyWith(errorMessage: e.toString());
       return false;
     }
@@ -112,5 +125,7 @@ class TowerNotifier extends StateNotifier<TowerListState> {
 
 final towerNotifierProvider = StateNotifierProvider<TowerNotifier, TowerListState>((ref) {
   final repository = ref.watch(towerRepositoryProvider);
-  return TowerNotifier(repository);
+  final activeSociety = ref.watch(activeSocietyProvider).activeSociety;
+  final sId = activeSociety?.id ?? AppConstants.defaultSocietyId;
+  return TowerNotifier(repository, sId);
 });

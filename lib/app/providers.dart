@@ -25,8 +25,12 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
 });
 
 final sessionStorageProvider = Provider<SessionStorage>((ref) {
-  final prefs = ref.watch(sharedPreferencesProvider);
-  return FlutterSessionStorage(preferences: prefs);
+  try {
+    final prefs = ref.watch(sharedPreferencesProvider);
+    return FlutterSessionStorage(preferences: prefs);
+  } catch (_) {
+    return InMemorySessionStorage();
+  }
 });
 
 final fileStorageServiceProvider = Provider<FileStorageService>((ref) {

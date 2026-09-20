@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 
-enum AppButtonVariant { primary, secondary, outlined, text, danger }
+enum AppButtonVariant { primary, secondary, outlined, text, danger, gradient }
 
-class AppButton extends StatelessWidget {
+class AppButton extends StatefulWidget {
   final String text;
   final VoidCallback? onPressed;
   final AppButtonVariant variant;
@@ -24,95 +24,155 @@ class AppButton extends StatelessWidget {
   });
 
   @override
+  State<AppButton> createState() => _AppButtonState();
+}
+
+class _AppButtonState extends State<AppButton> {
+  bool _isHovered = false;
+  bool _isPressed = false;
+
+  @override
   Widget build(BuildContext context) {
-    final effectiveOnPressed = isLoading ? null : onPressed;
+    final effectiveOnPressed = widget.isLoading ? null : widget.onPressed;
 
     Widget buttonChild = Row(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        if (isLoading) ...[
+        if (widget.isLoading) ...[
           SizedBox(
             width: 18,
             height: 18,
             child: CircularProgressIndicator(
               strokeWidth: 2,
               valueColor: AlwaysStoppedAnimation<Color>(
-                variant == AppButtonVariant.outlined || variant == AppButtonVariant.text
+                widget.variant == AppButtonVariant.outlined || widget.variant == AppButtonVariant.text
                     ? AppColors.primary
                     : AppColors.white,
               ),
             ),
           ),
           const SizedBox(width: 10),
-        ] else if (icon != null) ...[
-          Icon(icon, size: 18),
+        ] else if (widget.icon != null) ...[
+          Icon(widget.icon, size: 18),
           const SizedBox(width: 8),
         ],
         Text(
-          text,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+          widget.text,
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, letterSpacing: 0.1),
         ),
       ],
     );
 
     Widget buttonWidget;
-    switch (variant) {
-      case AppButtonVariant.primary:
-        buttonWidget = ElevatedButton(
-          onPressed: effectiveOnPressed,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: AppColors.white,
-          ),
-          child: buttonChild,
-        );
-        break;
-      case AppButtonVariant.secondary:
-        buttonWidget = ElevatedButton(
-          onPressed: effectiveOnPressed,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.slate700,
-            foregroundColor: AppColors.white,
-          ),
-          child: buttonChild,
-        );
-        break;
-      case AppButtonVariant.outlined:
-        buttonWidget = OutlinedButton(
-          onPressed: effectiveOnPressed,
-          child: buttonChild,
-        );
-        break;
-      case AppButtonVariant.text:
-        buttonWidget = TextButton(
-          onPressed: effectiveOnPressed,
-          child: buttonChild,
-        );
-        break;
-      case AppButtonVariant.danger:
-        buttonWidget = ElevatedButton(
-          onPressed: effectiveOnPressed,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.error,
-            foregroundColor: AppColors.white,
-          ),
-          child: buttonChild,
-        );
-        break;
-    }
 
-    if (width != null) {
-      return SizedBox(
-        width: width,
-        height: height,
-        child: buttonWidget,
+    if (widget.variant == AppButtonVariant.gradient || widget.variant == AppButtonVariant.primary) {
+      // Modern Indigo-Violet Gradient Button with ambient glow
+      final bool isEnabled = effectiveOnPressed != null;
+      buttonWidget = Container(
+        decoration: BoxDecoration(
+          gradient: isEnabled ? AppGradients.primary : null,
+          color: isEnabled ? null : AppColors.slate300,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: isEnabled && _isHovered
+              ? [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.4),
+                    blurRadius: 14,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : (isEnabled
+                  ? [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.25),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                  : null),
+        ),
+        child: ElevatedButton(
+          onPressed: effectiveOnPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.transparent,
+            shadowColor: Colors.transparent,
+            foregroundColor: AppColors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          child: buttonChild,
+        ),
       );
+    } else {
+      switch (widget.variant) {
+        case AppButtonVariant.secondary:
+          buttonWidget = ElevatedButton(
+            onPressed: effectiveOnPressed,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.slate700,
+              foregroundColor: AppColors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: buttonChild,
+          );
+          break;
+        case AppButtonVariant.outlined:
+          buttonWidget = OutlinedButton(
+            onPressed: effectiveOnPressed,
+            style: OutlinedButton.styleFrom(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: buttonChild,
+          );
+          break;
+        case AppButtonVariant.text:
+          buttonWidget = TextButton(
+            onPressed: effectiveOnPressed,
+            child: buttonChild,
+          );
+          break;
+        case AppButtonVariant.danger:
+          buttonWidget = ElevatedButton(
+            onPressed: effectiveOnPressed,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: AppColors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: buttonChild,
+          );
+          break;
+        default:
+          buttonWidget = ElevatedButton(
+            onPressed: effectiveOnPressed,
+            child: buttonChild,
+          );
+      }
     }
 
-    return SizedBox(
-      height: height,
-      child: buttonWidget,
+    final scale = _isPressed ? 0.97 : (_isHovered ? 1.015 : 1.0);
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() {
+        _isHovered = false;
+        _isPressed = false;
+      }),
+      child: GestureDetector(
+        onTapDown: widget.onPressed != null ? (_) => setState(() => _isPressed = true) : null,
+        onTapUp: widget.onPressed != null ? (_) => setState(() => _isPressed = false) : null,
+        onTapCancel: widget.onPressed != null ? () => setState(() => _isPressed = false) : null,
+        child: AnimatedScale(
+          scale: scale,
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOutCubic,
+          child: SizedBox(
+            width: widget.width,
+            height: widget.height,
+            child: buttonWidget,
+          ),
+        ),
+      ),
     );
   }
 }

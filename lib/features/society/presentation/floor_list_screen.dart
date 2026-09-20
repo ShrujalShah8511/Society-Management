@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/animations/app_animations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/confirm_dialog.dart';
@@ -27,151 +28,247 @@ class FloorListScreen extends ConsumerWidget {
           )
         : null;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Floor Management'),
-        actions: [
-          if (canManage && selectedTower != null)
-            Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: AppButton(
-                key: const Key('add_floor_button'),
-                text: 'Add Floor',
-                icon: Icons.add,
-                height: 38,
-                onPressed: () async {
-                  final result = await FloorFormDialog.show(
-                    context,
-                    towerName: selectedTower.name,
-                  );
-                  if (result != null) {
-                    final success = await ref
-                        .read(floorNotifierProvider.notifier)
-                        .createFloor(
-                          floorNumber: result.floorNumber,
-                          displayName: result.displayName,
-                          status: result.status,
-                        );
-                    if (success && context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Floor added successfully'),
-                          backgroundColor: AppColors.success,
-                        ),
-                      );
-                    }
-                  }
-                },
-              ),
-            ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Tower Selector Bar
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardTheme.color,
-              border: Border(
-                bottom: BorderSide(color: Theme.of(context).dividerColor),
-              ),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.apartment, size: 20, color: AppColors.primary),
-                const SizedBox(width: 10),
-                const Text(
-                  'Select Tower:',
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+      body: CustomScrollView(
+        slivers: [
+          // Executive Header Ribbon
+          SliverToBoxAdapter(
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+                border: Border(
+                  bottom: BorderSide(
+                    color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                  ),
                 ),
-                const SizedBox(width: 16),
-                if (state.towers.isNotEmpty)
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 320),
-                    child: DropdownButtonFormField<String>(
-                      value: state.selectedTowerId,
-                      decoration: const InputDecoration(
-                        contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          gradient: AppGradients.primary,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withValues(alpha: 0.35),
+                              blurRadius: 10,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.layers_rounded,
+                          color: AppColors.white,
+                          size: 24,
+                        ),
                       ),
-                      items: state.towers.map((tower) {
-                        return DropdownMenuItem(
-                          value: tower.id,
-                          child: Text(tower.name),
-                        );
-                      }).toList(),
-                      onChanged: (towerId) {
-                        if (towerId != null) {
-                          ref.read(floorNotifierProvider.notifier).selectTower(towerId);
-                        }
-                      },
-                    ),
-                  )
-                else
-                  const Text('No towers available'),
-              ],
-            ),
-          ),
-
-          // Floors List Content
-          Expanded(
-            child: Builder(
-              builder: (context) {
-                if (state.isLoading) {
-                  return const LoadingView(message: 'Loading floors...');
-                }
-
-                if (state.errorMessage != null && state.floors.isEmpty) {
-                  return ErrorRetryView(
-                    message: state.errorMessage!,
-                    onRetry: () => ref.read(floorNotifierProvider.notifier).init(),
-                  );
-                }
-
-                if (state.towers.isEmpty) {
-                  return const EmptyStateView(
-                    title: 'No Towers Created',
-                    message: 'Please create at least one tower before configuring floors.',
-                    icon: Icons.domain_disabled,
-                  );
-                }
-
-                if (state.floors.isEmpty) {
-                  return EmptyStateView(
-                    title: 'No Floors Configured',
-                    message: 'No floors have been added to ${selectedTower?.name ?? "this tower"} yet.',
-                    icon: Icons.layers_clear_outlined,
-                    actionLabel: canManage ? 'Add Floor' : null,
-                    onAction: canManage && selectedTower != null
-                        ? () async {
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  'Floor Management',
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: -0.5,
+                                    color: isDark ? AppColors.slate50 : AppColors.slate900,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.secondary.withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: AppColors.secondary.withValues(alpha: 0.3),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    '${state.floors.length} Floors',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.secondary,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Multi-level vertical configuration, floor designations, and status control',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: isDark ? AppColors.slate400 : AppColors.slate600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (canManage && selectedTower != null)
+                        AppButton(
+                          key: const Key('add_floor_button'),
+                          text: 'Add Floor',
+                          icon: Icons.add_rounded,
+                          height: 42,
+                          onPressed: () async {
                             final result = await FloorFormDialog.show(
                               context,
                               towerName: selectedTower.name,
                             );
                             if (result != null) {
-                              await ref.read(floorNotifierProvider.notifier).createFloor(
+                              final success = await ref
+                                  .read(floorNotifierProvider.notifier)
+                                  .createFloor(
                                     floorNumber: result.floorNumber,
                                     displayName: result.displayName,
                                     status: result.status,
                                   );
+                              if (success && context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Floor added successfully'),
+                                    backgroundColor: AppColors.success,
+                                  ),
+                                );
+                              }
                             }
-                          }
-                        : null,
-                  );
-                }
+                          },
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
 
-                return ListView.separated(
-                  padding: const EdgeInsets.all(20),
-                  itemCount: state.floors.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final floor = state.floors[index];
-                    return _buildFloorCard(context, ref, floor, selectedTower?.name ?? '', canManage);
-                  },
-                );
-              },
+                  // Tower Selector Bar
+                  Row(
+                    children: [
+                      const Icon(Icons.apartment_rounded, size: 20, color: AppColors.primary),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Active Tower:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                          color: isDark ? AppColors.slate300 : AppColors.slate700,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      if (state.towers.isNotEmpty)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: isDark ? AppColors.surfaceDarkCard : AppColors.surfaceLight,
+                            border: Border.all(
+                              color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: DropdownButton<String>(
+                            value: state.selectedTowerId,
+                            underline: const SizedBox.shrink(),
+                            dropdownColor: isDark ? AppColors.surfaceDarkCard : AppColors.surfaceLight,
+                            items: state.towers.map((tower) {
+                              return DropdownMenuItem(
+                                value: tower.id,
+                                child: Text(tower.name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                              );
+                            }).toList(),
+                            onChanged: (towerId) {
+                              if (towerId != null) {
+                                ref.read(floorNotifierProvider.notifier).selectTower(towerId);
+                              }
+                            },
+                          ),
+                        )
+                      else
+                        const Text('No towers available', style: TextStyle(fontSize: 13)),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
+
+          // Floors List Content
+          if (state.isLoading)
+            const SliverFillRemaining(
+              child: LoadingView(message: 'Loading floors...'),
+            )
+          else if (state.errorMessage != null && state.floors.isEmpty)
+            SliverFillRemaining(
+              child: ErrorRetryView(
+                message: state.errorMessage!,
+                onRetry: () => ref.read(floorNotifierProvider.notifier).init(),
+              ),
+            )
+          else if (state.towers.isEmpty)
+            const SliverFillRemaining(
+              child: EmptyStateView(
+                title: 'No Towers Created',
+                message: 'Please create at least one tower before configuring floors.',
+                icon: Icons.domain_disabled,
+              ),
+            )
+          else if (state.floors.isEmpty)
+            SliverFillRemaining(
+              child: EmptyStateView(
+                title: 'No Floors Configured',
+                message: 'No floors have been added to ${selectedTower?.name ?? "this tower"} yet.',
+                icon: Icons.layers_clear_outlined,
+                actionLabel: canManage ? 'Add Floor' : null,
+                onAction: canManage && selectedTower != null
+                    ? () async {
+                        final result = await FloorFormDialog.show(
+                          context,
+                          towerName: selectedTower.name,
+                        );
+                        if (result != null) {
+                          await ref.read(floorNotifierProvider.notifier).createFloor(
+                                floorNumber: result.floorNumber,
+                                displayName: result.displayName,
+                                status: result.status,
+                              );
+                        }
+                      }
+                    : null,
+              ),
+            )
+          else
+            SliverPadding(
+              padding: const EdgeInsets.all(24),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final floor = state.floors[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: _buildFloorCard(
+                        context,
+                        ref,
+                        floor,
+                        selectedTower?.name ?? '',
+                        canManage,
+                      ),
+                    );
+                  },
+                  childCount: state.floors.length,
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -184,33 +281,48 @@ class FloorListScreen extends ConsumerWidget {
     String towerName,
     bool canManage,
   ) {
-    return Card(
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return HoverLiftCard(
+      glowColor: AppColors.secondary,
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         leading: Container(
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: AppColors.primaryLight,
-            borderRadius: BorderRadius.circular(10),
+            gradient: AppGradients.primary,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           alignment: Alignment.center,
           child: Text(
             '${floor.floorNumber}',
             style: const TextStyle(
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
               fontSize: 16,
-              color: AppColors.primaryDark,
+              color: AppColors.white,
             ),
           ),
         ),
         title: Text(
           floor.displayName,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 15,
+            letterSpacing: -0.2,
+            color: isDark ? AppColors.slate100 : AppColors.slate900,
+          ),
         ),
         subtitle: Text(
           'Tower: $towerName • Floor Level: ${floor.floorNumber}',
-          style: const TextStyle(fontSize: 13, color: AppColors.slate500),
+          style: TextStyle(fontSize: 13, color: isDark ? AppColors.slate400 : AppColors.slate500),
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,

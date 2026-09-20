@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/animations/app_animations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/confirm_dialog.dart';
@@ -96,42 +97,112 @@ class _TowerListScreenState extends ConsumerState<TowerListScreen> {
     final state = ref.watch(towerNotifierProvider);
     final authState = ref.watch(authNotifierProvider);
     final canManage = RolePermissions.canManageTowers(authState.role);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final filteredList = state.filteredTowers;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Tower Management'),
-        actions: [
-          if (canManage)
-            Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: AppButton(
-                key: const Key('add_tower_button'),
-                text: 'Add Tower',
-                icon: Icons.add,
-                height: 38,
-                onPressed: _openAddDialog,
-              ),
-            ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Search & Filters Header
-          Container(
-            padding: const EdgeInsets.all(16.0),
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardTheme.color,
-              border: Border(
-                bottom: BorderSide(
-                  color: Theme.of(context).dividerColor,
+      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+      body: CustomScrollView(
+        slivers: [
+          // Executive Header Ribbon
+          SliverToBoxAdapter(
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+                border: Border(
+                  bottom: BorderSide(
+                    color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                  ),
                 ),
               ),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 400),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          gradient: AppGradients.primary,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withValues(alpha: 0.35),
+                              blurRadius: 10,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.apartment_rounded,
+                          color: AppColors.white,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  'Tower Management',
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: -0.5,
+                                    color: isDark ? AppColors.slate50 : AppColors.slate900,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary.withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: AppColors.primary.withValues(alpha: 0.3),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    '${state.towers.length} Towers',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Architectural towers, building configurations, and high-level structure',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: isDark ? AppColors.slate400 : AppColors.slate600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (canManage)
+                        AppButton(
+                          key: const Key('add_tower_button'),
+                          text: 'Add Tower',
+                          icon: Icons.add_rounded,
+                          height: 42,
+                          onPressed: _openAddDialog,
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // Search Bar
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 420),
                     child: TextField(
                       key: const Key('tower_search_field'),
                       controller: _searchController,
@@ -140,172 +211,190 @@ class _TowerListScreenState extends ConsumerState<TowerListScreen> {
                       },
                       decoration: InputDecoration(
                         hintText: 'Search towers by name or description...',
-                        prefixIcon: const Icon(Icons.search, size: 20),
+                        prefixIcon: const Icon(Icons.search_rounded, size: 20),
                         suffixIcon: _searchController.text.isNotEmpty
                             ? IconButton(
-                                icon: const Icon(Icons.clear, size: 18),
+                                icon: const Icon(Icons.clear_rounded, size: 18),
                                 onPressed: () {
                                   _searchController.clear();
                                   ref.read(towerNotifierProvider.notifier).setSearchQuery('');
                                 },
                               )
                             : null,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
 
-          // Content Area
-          Expanded(
-            child: Builder(
-              builder: (context) {
-                if (state.isLoading) {
-                  return const LoadingView(message: 'Loading towers...');
-                }
+          // Content
+          if (state.isLoading)
+            const SliverFillRemaining(
+              child: LoadingView(message: 'Loading towers...'),
+            )
+          else if (state.errorMessage != null && state.towers.isEmpty)
+            SliverFillRemaining(
+              child: ErrorRetryView(
+                message: state.errorMessage!,
+                onRetry: () => ref.read(towerNotifierProvider.notifier).loadTowers(),
+              ),
+            )
+          else if (filteredList.isEmpty)
+            SliverFillRemaining(
+              child: EmptyStateView(
+                title: 'No Towers Found',
+                message: state.searchQuery.isNotEmpty
+                    ? 'No towers matched "${state.searchQuery}".'
+                    : 'No towers have been added to this society yet.',
+                icon: Icons.domain_disabled_outlined,
+                actionLabel: canManage ? 'Add Tower' : null,
+                onAction: canManage ? _openAddDialog : null,
+              ),
+            )
+          else
+            SliverPadding(
+              padding: const EdgeInsets.all(24),
+              sliver: SliverLayoutBuilder(
+                builder: (context, constraints) {
+                  final crossAxisCount = constraints.crossAxisExtent > 1100
+                      ? 3
+                      : (constraints.crossAxisExtent > 700 ? 2 : 1);
 
-                if (state.errorMessage != null && state.towers.isEmpty) {
-                  return ErrorRetryView(
-                    message: state.errorMessage!,
-                    onRetry: () => ref.read(towerNotifierProvider.notifier).loadTowers(),
-                  );
-                }
-
-                final filteredList = state.filteredTowers;
-
-                if (filteredList.isEmpty) {
-                  return EmptyStateView(
-                    title: 'No Towers Found',
-                    message: state.searchQuery.isNotEmpty
-                        ? 'No towers matched "${state.searchQuery}".'
-                        : 'No towers have been added to this society yet.',
-                    icon: Icons.domain_disabled_outlined,
-                    actionLabel: canManage ? 'Add Tower' : null,
-                    onAction: canManage ? _openAddDialog : null,
-                  );
-                }
-
-                return LayoutBuilder(
-                  builder: (context, constraints) {
-                    final crossAxisCount = constraints.maxWidth > 900
-                        ? 3
-                        : (constraints.maxWidth > 600 ? 2 : 1);
-
-                    return GridView.builder(
-                      padding: const EdgeInsets.all(20),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: crossAxisCount,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                        mainAxisExtent: 180,
-                      ),
-                      itemCount: filteredList.length,
-                      itemBuilder: (context, index) {
+                  return SliverGrid(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount,
+                      crossAxisSpacing: 18,
+                      mainAxisSpacing: 18,
+                      mainAxisExtent: 195,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
                         final tower = filteredList[index];
                         return _buildTowerCard(tower, canManage);
                       },
-                    );
-                  },
-                );
-              },
+                      childCount: filteredList.length,
+                    ),
+                  );
+                },
+              ),
             ),
-          ),
         ],
       ),
     );
   }
 
   Widget _buildTowerCard(Tower tower, bool canManage) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryLight,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(Icons.apartment, color: AppColors.primary, size: 22),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return HoverLiftCard(
+      glowColor: AppColors.primary,
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  gradient: AppGradients.primary,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        tower.name,
-                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                child: const Icon(Icons.apartment_rounded, color: AppColors.white, size: 22),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      tower.name,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 16,
+                        letterSpacing: -0.2,
+                        color: isDark ? AppColors.slate100 : AppColors.slate900,
                       ),
-                      const SizedBox(height: 2),
-                      StatusBadge.fromStatus(tower.status.code),
-                    ],
-                  ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    StatusBadge.fromStatus(tower.status.code),
+                  ],
                 ),
-                if (canManage) ...[
-                  PopupMenuButton<String>(
-                    onSelected: (val) {
-                      if (val == 'edit') _openEditDialog(tower);
-                      if (val == 'delete') _handleDelete(tower);
-                    },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'edit',
-                        child: Row(
-                          children: [
-                            Icon(Icons.edit_outlined, size: 18),
-                            SizedBox(width: 8),
-                            Text('Edit'),
-                          ],
-                        ),
+              ),
+              if (canManage) ...[
+                PopupMenuButton<String>(
+                  onSelected: (val) {
+                    if (val == 'edit') _openEditDialog(tower);
+                    if (val == 'delete') _handleDelete(tower);
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit_outlined, size: 18),
+                          SizedBox(width: 8),
+                          Text('Edit'),
+                        ],
                       ),
-                      const PopupMenuItem(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete_outline, color: AppColors.error, size: 18),
-                            SizedBox(width: 8),
-                            Text('Delete', style: TextStyle(color: AppColors.error)),
-                          ],
-                        ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete_outline, color: AppColors.error, size: 18),
+                          SizedBox(width: 8),
+                          Text('Delete', style: TextStyle(color: AppColors.error)),
+                        ],
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ],
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            tower.description.isNotEmpty ? tower.description : 'No description provided',
+            style: TextStyle(
+              fontSize: 13,
+              color: isDark ? AppColors.slate400 : AppColors.slate500,
+              height: 1.35,
             ),
-            const SizedBox(height: 12),
-            Text(
-              tower.description.isNotEmpty ? tower.description : 'No description provided',
-              style: const TextStyle(fontSize: 13, color: AppColors.slate500),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const Spacer(),
-            const Divider(),
-            const SizedBox(height: 6),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '${tower.floorCount} Total Floors',
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.slate700),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const Spacer(),
+          Divider(color: isDark ? AppColors.borderDark : AppColors.borderLight),
+          const SizedBox(height: 6),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '${tower.floorCount} Total Floors',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? AppColors.slate300 : AppColors.slate700,
                 ),
-                const Icon(Icons.layers_outlined, size: 16, color: AppColors.slate400),
-              ],
-            ),
-          ],
-        ),
+              ),
+              const Icon(Icons.layers_rounded, size: 16, color: AppColors.primary),
+            ],
+          ),
+        ],
       ),
     );
   }

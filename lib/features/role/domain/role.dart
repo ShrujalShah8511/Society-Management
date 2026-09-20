@@ -22,9 +22,12 @@ enum Role {
 }
 
 enum Permission {
-  // Society management
+  // Society management & Multi-Tenant Platform
   viewSociety('view_society'),
   editSociety('edit_society'),
+  manageAllSocieties('manage_all_societies'),
+  createSociety('create_society'),
+  switchSociety('switch_society'),
 
   // Towers
   viewTowers('view_towers'),
@@ -57,6 +60,9 @@ class RolePermissions {
     Role.superAdmin: {
       Permission.viewSociety,
       Permission.editSociety,
+      Permission.manageAllSocieties,
+      Permission.createSociety,
+      Permission.switchSociety,
       Permission.viewTowers,
       Permission.manageTowers,
       Permission.viewFloors,
@@ -71,6 +77,9 @@ class RolePermissions {
     Role.societyAdmin: {
       Permission.viewSociety,
       Permission.editSociety,
+      Permission.manageAllSocieties,
+      Permission.createSociety,
+      Permission.switchSociety,
       Permission.viewTowers,
       Permission.manageTowers,
       Permission.viewFloors,
@@ -136,4 +145,10 @@ class RolePermissions {
 
   static bool canManageFlats(Role role) =>
       hasPermission(role, Permission.manageFlats);
+
+  static bool canManageAllSocieties(Role role) =>
+      hasPermission(role, Permission.manageAllSocieties);
+
+  static bool canCreateSociety(Role role) =>
+      hasPermission(role, Permission.createSociety);
 }

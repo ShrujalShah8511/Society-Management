@@ -93,13 +93,13 @@ void main() {
 
       // 6. Relational Integrity: Attempt to delete floor while flat exists -> fails
       expect(
-        () => floorRepo.deleteFloor(newFloorId),
+        floorRepo.deleteFloor(newFloorId),
         throwsException,
       );
 
       // 7. Relational Integrity: Attempt to delete tower while floor exists -> fails
       expect(
-        () => towerRepo.deleteTower(newTowerId),
+        towerRepo.deleteTower(newTowerId),
         throwsException,
       );
 

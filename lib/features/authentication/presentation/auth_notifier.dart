@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/providers.dart';
 import '../../role/domain/role.dart';
@@ -34,7 +33,7 @@ class AuthState {
   }
 }
 
-class AuthNotifier extends StateNotifier<AuthState> with ChangeNotifier {
+class AuthNotifier extends StateNotifier<AuthState> {
   final AuthRepository _repository;
 
   AuthNotifier(this._repository) : super(const AuthState()) {
@@ -43,7 +42,6 @@ class AuthNotifier extends StateNotifier<AuthState> with ChangeNotifier {
 
   Future<void> restoreSession() async {
     state = state.copyWith(status: AuthStatus.loading);
-    notifyListeners();
     try {
       final user = await _repository.restoreSession();
       if (user != null) {
@@ -54,7 +52,6 @@ class AuthNotifier extends StateNotifier<AuthState> with ChangeNotifier {
     } catch (e) {
       state = state.copyWith(status: AuthStatus.unauthenticated);
     }
-    notifyListeners();
   }
 
   Future<bool> login({
@@ -62,7 +59,6 @@ class AuthNotifier extends StateNotifier<AuthState> with ChangeNotifier {
     required String password,
   }) async {
     state = state.copyWith(status: AuthStatus.loading, errorMessage: null);
-    notifyListeners();
     try {
       final session = await _repository.login(
         emailOrMobile: emailOrMobile,
@@ -73,14 +69,12 @@ class AuthNotifier extends StateNotifier<AuthState> with ChangeNotifier {
         user: session.user,
         errorMessage: null,
       );
-      notifyListeners();
       return true;
     } catch (e) {
       state = state.copyWith(
         status: AuthStatus.error,
         errorMessage: e.toString(),
       );
-      notifyListeners();
       return false;
     }
   }
@@ -98,7 +92,6 @@ class AuthNotifier extends StateNotifier<AuthState> with ChangeNotifier {
   Future<void> logout() async {
     await _repository.logout();
     state = const AuthState(status: AuthStatus.unauthenticated);
-    notifyListeners();
   }
 
   Future<bool> updateProfile({
@@ -115,7 +108,6 @@ class AuthNotifier extends StateNotifier<AuthState> with ChangeNotifier {
         profilePhotoUrl: profilePhotoUrl,
       );
       state = state.copyWith(user: updated);
-      notifyListeners();
       return true;
     } catch (e) {
       state = state.copyWith(errorMessage: e.toString());

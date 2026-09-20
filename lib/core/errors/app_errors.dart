@@ -1,4 +1,4 @@
-abstract class AppFailure {
+abstract class AppFailure implements Exception {
   final String message;
   final String? code;
 
@@ -31,6 +31,6 @@ class NotFoundFailure extends AppFailure {
 class PermissionDeniedFailure extends AppFailure {
   const PermissionDeniedFailure([
     super.message = 'You do not have permission to perform this action.',
-    super.code = 'PERMISSION_DENIED',
-  ]);
+    String? code,
+  ]) : super(code: code ?? 'PERMISSION_DENIED');
 }

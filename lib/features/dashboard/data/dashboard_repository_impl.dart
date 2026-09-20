@@ -12,12 +12,12 @@ class DashboardRepositoryImpl implements DashboardRepository {
     // Computes statistics directly from live society state
     await Future.delayed(const Duration(milliseconds: 200));
     return DashboardStats(
-      totalTowers: _societyDataSource.totalTowers,
-      totalFloors: _societyDataSource.totalFloors,
-      totalFlats: _societyDataSource.totalFlats,
-      occupiedFlats: _societyDataSource.occupiedFlats,
-      vacantFlats: _societyDataSource.vacantFlats,
-      underMaintenanceFlats: _societyDataSource.underMaintenanceFlats,
+      totalTowers: _societyDataSource.getTotalTowers(societyId),
+      totalFloors: _societyDataSource.getTotalFloors(societyId),
+      totalFlats: _societyDataSource.getTotalFlats(societyId),
+      occupiedFlats: _societyDataSource.getOccupiedFlats(societyId),
+      vacantFlats: _societyDataSource.getVacantFlats(societyId),
+      underMaintenanceFlats: _societyDataSource.getUnderMaintenanceFlats(societyId),
     );
   }
 }

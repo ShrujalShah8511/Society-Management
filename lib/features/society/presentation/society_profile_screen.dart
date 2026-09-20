@@ -10,6 +10,7 @@ import '../../../core/widgets/state_views.dart';
 import '../../authentication/presentation/auth_notifier.dart';
 import '../../role/domain/role.dart';
 import '../domain/society.dart';
+import 'active_society_provider.dart';
 import 'society_profile_notifier.dart';
 
 class SocietyProfileScreen extends ConsumerStatefulWidget {
@@ -106,6 +107,8 @@ class _SocietyProfileScreenState extends ConsumerState<SocietyProfileScreen> {
         .updateProfile(updated);
 
     if (success && mounted) {
+      await ref.read(activeSocietyProvider.notifier).loadSocieties(preferredActiveId: updated.id);
+      if (!mounted) return;
       setState(() {
         _isEditing = false;
       });
@@ -236,8 +239,15 @@ class _SocietyProfileScreenState extends ConsumerState<SocietyProfileScreen> {
                             child: _logoUrl != null
                                 ? ClipRRect(
                                     borderRadius: BorderRadius.circular(16),
-                                    child: const Icon(Icons.apartment_rounded,
-                                        size: 44, color: AppColors.primary),
+                                    child: Image.asset(
+                                      _logoUrl!,
+                                      fit: BoxFit.contain,
+                                      errorBuilder: (context, error, stackTrace) => const Icon(
+                                        Icons.apartment_rounded,
+                                        size: 44,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
                                   )
                                 : const Icon(Icons.apartment_rounded,
                                     size: 44, color: AppColors.primary),
@@ -274,7 +284,7 @@ class _SocietyProfileScreenState extends ConsumerState<SocietyProfileScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Registration: ${society.registrationNumber}',
+                              'RERA / Reg: ${society.registrationNumber}',
                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                     color: AppColors.slate500,
                                   ),
@@ -324,7 +334,7 @@ class _SocietyProfileScreenState extends ConsumerState<SocietyProfileScreen> {
                                 ),
                                 second: AppTextField(
                                   controller: _regNumberController,
-                                  label: 'Registration Number',
+                                  label: 'RERA / Registration Number',
                                   readOnly: !_isEditing,
                                   validator: Validators.required,
                                 ),

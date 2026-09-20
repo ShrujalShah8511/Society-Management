@@ -43,7 +43,16 @@ class AuthRepositoryImpl implements AuthRepository {
     }
     try {
       final userMap = jsonDecode(userData) as Map<String, dynamic>;
-      return User.fromMap(userMap);
+      final user = User.fromMap(userMap);
+      if (user.id == 'usr-admin-001') {
+        final updatedAdmin = user.copyWith(
+          name: 'Shrujal Shah',
+          societyName: 'Shyam Heights',
+        );
+        await _sessionStorage.saveUserData(jsonEncode(updatedAdmin.toMap()));
+        return updatedAdmin;
+      }
+      return user;
     } catch (_) {
       await _sessionStorage.clear();
       return null;

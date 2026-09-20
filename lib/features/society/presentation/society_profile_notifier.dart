@@ -4,6 +4,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/storage/file_storage_service.dart';
 import '../domain/society.dart';
 import '../domain/society_repository.dart';
+import 'active_society_provider.dart';
 
 class SocietyProfileState {
   final Society? society;
@@ -79,5 +80,10 @@ final societyProfileNotifierProvider =
     StateNotifierProvider<SocietyProfileNotifier, SocietyProfileState>((ref) {
   final repository = ref.watch(societyRepositoryProvider);
   final fileStorage = ref.watch(fileStorageServiceProvider);
-  return SocietyProfileNotifier(repository, fileStorage);
+  final activeSociety = ref.watch(activeSocietyProvider).activeSociety;
+  final notifier = SocietyProfileNotifier(repository, fileStorage);
+  if (activeSociety != null) {
+    notifier.loadProfile(activeSociety.id);
+  }
+  return notifier;
 });

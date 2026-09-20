@@ -6,7 +6,7 @@ import '../domain/society.dart';
 import '../domain/tower.dart';
 
 class SocietyMockDataSource {
-  late Society _society;
+  final Map<String, Society> _societies = {};
   final Map<String, Tower> _towers = {};
   final Map<String, Floor> _floors = {};
   final Map<String, Flat> _flats = {};
@@ -16,22 +16,42 @@ class SocietyMockDataSource {
   }
 
   void _seedData() {
-    // 1. Seed Society
-    _society = Society(
+    // 1. Seed Flagship Society - Shyam Heights
+    final shyamHeights = Society(
       id: AppConstants.defaultSocietyId,
-      name: 'Grand Palm Heights Society',
-      logoUrl: null,
-      address: 'Plot 42, Palm Avenue, Sector 15',
-      city: 'Mumbai',
-      state: 'Maharashtra',
+      name: 'Shyam Heights',
+      logoUrl: 'assets/images/shyam_heights_logo.png',
+      address: 'Near Sargasan Cross Road, Sargasan',
+      city: 'Gandhinagar',
+      state: 'Gujarat',
       country: 'India',
-      pinCode: '400001',
+      pinCode: '382421',
       contactNumber: '+91 9876543210',
-      email: 'contact@palmheights.org',
-      registrationNumber: 'MAH/MUM/2021/4891',
-      website: 'https://grandpalmheights.org',
+      email: 'contact@shyamheights.in',
+      registrationNumber: 'PR/GJ/GANDHINAGAR/GANDHINAGAR/OTHERS/MAA10020/130422',
+      website: 'https://shyamheights.in',
       updatedAt: DateTime.now().subtract(const Duration(days: 30)),
     );
+
+    // 2. Seed Second Society - Palm Oasis Residency
+    final palmOasis = Society(
+      id: 'soc-palm-002',
+      name: 'Palm Oasis Residency',
+      logoUrl: null,
+      address: 'SG Highway, Bodakdev',
+      city: 'Ahmedabad',
+      state: 'Gujarat',
+      country: 'India',
+      pinCode: '380054',
+      contactNumber: '+91 9822334455',
+      email: 'admin@palmoasis.in',
+      registrationNumber: 'GUJ/AHM/2022/3041',
+      website: 'https://palmoasis.in',
+      updatedAt: DateTime.now().subtract(const Duration(days: 45)),
+    );
+
+    _societies[shyamHeights.id] = shyamHeights;
+    _societies[palmOasis.id] = palmOasis;
 
     // 2. Seed Towers
     final towerA = Tower(
@@ -218,18 +238,79 @@ class SocietyMockDataSource {
     for (final flat in flatsList) {
       _flats[flat.id] = flat;
     }
+
+    // Seed Tower and Flat for Palm Oasis Residency
+    final towerP1 = Tower(
+      id: 'tow-p01',
+      societyId: 'soc-palm-002',
+      name: 'Tower 1 (Pavilion)',
+      description: 'East wing residential suites',
+      floorCount: 4,
+      status: TowerStatus.active,
+      createdAt: DateTime.now().subtract(const Duration(days: 50)),
+    );
+    _towers[towerP1.id] = towerP1;
+
+    final flrP1 = Floor(
+      id: 'flr-p01',
+      societyId: 'soc-palm-002',
+      towerId: towerP1.id,
+      floorNumber: 1,
+      displayName: 'Floor 1',
+      status: TowerStatus.active,
+      createdAt: DateTime.now().subtract(const Duration(days: 45)),
+    );
+    _floors[flrP1.id] = flrP1;
+
+    final fltP1 = Flat(
+      id: 'flt-p01',
+      societyId: 'soc-palm-002',
+      towerId: towerP1.id,
+      floorId: flrP1.id,
+      flatNumber: 'P-101',
+      flatType: FlatType.threeBhk,
+      areaSqFt: 1650.0,
+      occupancyStatus: OccupancyStatus.occupied,
+      createdAt: DateTime.now().subtract(const Duration(days: 40)),
+    );
+    _flats[fltP1.id] = fltP1;
   }
 
-  // --- Society Operations ---
+  // --- Multi-Society Operations ---
+  Future<List<Society>> getSocieties() async {
+    await Future.delayed(const Duration(milliseconds: 150));
+    return _societies.values.toList()
+      ..sort((a, b) => a.name.compareTo(b.name));
+  }
+
   Future<Society> getSocietyProfile(String societyId) async {
-    await Future.delayed(const Duration(milliseconds: 200));
-    return _society;
+    await Future.delayed(const Duration(milliseconds: 150));
+    final society = _societies[societyId] ?? _societies[AppConstants.defaultSocietyId];
+    if (society == null) throw const NotFoundFailure('Society not found');
+    return society;
+  }
+
+  Future<Society> createSociety(Society society) async {
+    await Future.delayed(const Duration(milliseconds: 250));
+    _societies[society.id] = society;
+    return society;
   }
 
   Future<Society> updateSocietyProfile(Society society) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    _society = society.copyWith(updatedAt: DateTime.now());
-    return _society;
+    await Future.delayed(const Duration(milliseconds: 250));
+    _societies[society.id] = society.copyWith(updatedAt: DateTime.now());
+    return _societies[society.id]!;
+  }
+
+  Future<void> deleteSociety(String id) async {
+    await Future.delayed(const Duration(milliseconds: 250));
+    if (id == AppConstants.defaultSocietyId) {
+      throw const ValidationFailure('Cannot delete default flagship society.');
+    }
+    _flats.removeWhere((_, f) => f.societyId == id);
+    _floors.removeWhere((_, f) => f.societyId == id);
+    _towers.removeWhere((_, t) => t.societyId == id);
+    _societies.remove(id);
   }
 
   // --- Tower Operations ---
@@ -375,11 +456,41 @@ class SocietyMockDataSource {
     _flats.remove(id);
   }
 
-  // --- Statistics helper for Dashboard ---
-  int get totalTowers => _towers.values.where((t) => t.societyId == _society.id).length;
-  int get totalFloors => _floors.values.where((f) => f.societyId == _society.id).length;
-  int get totalFlats => _flats.values.where((f) => f.societyId == _society.id).length;
-  int get occupiedFlats => _flats.values.where((f) => f.societyId == _society.id && f.occupancyStatus == OccupancyStatus.occupied).length;
-  int get vacantFlats => _flats.values.where((f) => f.societyId == _society.id && f.occupancyStatus == OccupancyStatus.vacant).length;
-  int get underMaintenanceFlats => _flats.values.where((f) => f.societyId == _society.id && f.occupancyStatus == OccupancyStatus.underMaintenance).length;
+  // --- Statistics helper for Dashboard (Tenant Isolated) ---
+  int getTotalTowers([String? societyId]) {
+    final sId = societyId ?? AppConstants.defaultSocietyId;
+    return _towers.values.where((t) => t.societyId == sId).length;
+  }
+
+  int getTotalFloors([String? societyId]) {
+    final sId = societyId ?? AppConstants.defaultSocietyId;
+    return _floors.values.where((f) => f.societyId == sId).length;
+  }
+
+  int getTotalFlats([String? societyId]) {
+    final sId = societyId ?? AppConstants.defaultSocietyId;
+    return _flats.values.where((f) => f.societyId == sId).length;
+  }
+
+  int getOccupiedFlats([String? societyId]) {
+    final sId = societyId ?? AppConstants.defaultSocietyId;
+    return _flats.values.where((f) => f.societyId == sId && f.occupancyStatus == OccupancyStatus.occupied).length;
+  }
+
+  int getVacantFlats([String? societyId]) {
+    final sId = societyId ?? AppConstants.defaultSocietyId;
+    return _flats.values.where((f) => f.societyId == sId && f.occupancyStatus == OccupancyStatus.vacant).length;
+  }
+
+  int getUnderMaintenanceFlats([String? societyId]) {
+    final sId = societyId ?? AppConstants.defaultSocietyId;
+    return _flats.values.where((f) => f.societyId == sId && f.occupancyStatus == OccupancyStatus.underMaintenance).length;
+  }
+
+  int get totalTowers => getTotalTowers();
+  int get totalFloors => getTotalFloors();
+  int get totalFlats => getTotalFlats();
+  int get occupiedFlats => getOccupiedFlats();
+  int get vacantFlats => getVacantFlats();
+  int get underMaintenanceFlats => getUnderMaintenanceFlats();
 }

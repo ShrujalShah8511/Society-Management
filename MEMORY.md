@@ -25,8 +25,8 @@
 | Verification & Testing | Completed | Unit tests, widget tests, integration flow tests |
 
 ### Known Issues & Constraints
-* Environment contains Git via GitHub Desktop (`git version 2.53.0.windows.4`).
-* Dart/Flutter SDK needs to be in environment path to execute `flutter test` and `flutter analyze`.
+* Environment contains MinGit & Flutter SDK (v3.47.2 / Dart v3.13.2) under `scratch/tools/` and configured in User `PATH`.
+* Phase 1 web server runs on `http://localhost:8080`.
 
 ---
 

@@ -8,6 +8,8 @@ import 'package:society_management/features/society/data/tower_repository_impl.d
 import 'package:society_management/features/society/domain/floor.dart';
 import 'package:society_management/features/society/domain/tower.dart';
 
+import 'package:society_management/features/society/domain/society.dart';
+
 void main() {
   late SocietyMockDataSource dataSource;
   late SocietyRepositoryImpl societyRepo;
@@ -22,17 +24,48 @@ void main() {
   });
 
   group('Society & Tower/Floor Unit Tests', () {
+    test('Get all societies, create new society, and delete society', () async {
+      final list = await societyRepo.getSocieties();
+      expect(list.length, greaterThanOrEqualTo(2));
+      expect(list.any((s) => s.name == 'Shyam Heights'), isTrue);
+
+      final newSoc = Society(
+        id: 'soc-test-new',
+        name: 'Royal Orchid Enclave',
+        logoUrl: null,
+        address: 'Sector 7',
+        city: 'Gandhinagar',
+        state: 'Gujarat',
+        country: 'India',
+        pinCode: '382007',
+        contactNumber: '+91 9998881122',
+        email: 'info@royalorchid.in',
+        registrationNumber: 'GUJ/GNR/2026/99',
+        updatedAt: DateTime.now(),
+      );
+
+      final created = await societyRepo.createSociety(newSoc);
+      expect(created.name, 'Royal Orchid Enclave');
+
+      final updatedList = await societyRepo.getSocieties();
+      expect(updatedList.any((s) => s.id == 'soc-test-new'), isTrue);
+
+      await societyRepo.deleteSociety('soc-test-new');
+      final afterDelete = await societyRepo.getSocieties();
+      expect(afterDelete.any((s) => s.id == 'soc-test-new'), isFalse);
+    });
+
     test('Get and Update Society Profile', () async {
       final initial = await societyRepo.getSocietyProfile(AppConstants.defaultSocietyId);
-      expect(initial.name, contains('Grand Palm'));
+      expect(initial.name, contains('Shyam Heights'));
 
       final updated = initial.copyWith(
-        name: 'Grand Palm Heights Cooperative',
+        name: 'Shyam Heights Cooperative',
         city: 'Pune',
       );
       final saved = await societyRepo.updateSocietyProfile(updated);
 
-      expect(saved.name, 'Grand Palm Heights Cooperative');
+      expect(saved.name, 'Shyam Heights Cooperative');
       expect(saved.city, 'Pune');
     });
 

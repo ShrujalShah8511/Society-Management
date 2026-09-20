@@ -7,6 +7,7 @@ import '../domain/floor.dart';
 import '../domain/floor_repository.dart';
 import '../domain/tower.dart';
 import '../domain/tower_repository.dart';
+import 'active_society_provider.dart';
 
 class FlatFilterState {
   final String? selectedTowerId;
@@ -92,30 +93,35 @@ class FlatNotifier extends StateNotifier<FlatListState> {
   final FlatRepository _flatRepository;
   final TowerRepository _towerRepository;
   final FloorRepository _floorRepository;
+  final String _societyId;
 
   FlatNotifier(
     this._flatRepository,
     this._towerRepository,
-    this._floorRepository,
-  ) : super(const FlatListState()) {
+    this._floorRepository, [
+    String? societyId,
+  ])  : _societyId = societyId ?? AppConstants.defaultSocietyId,
+        super(const FlatListState()) {
     init();
   }
 
   Future<void> init() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
-      final towers = await _towerRepository.getTowers(AppConstants.defaultSocietyId);
+      final towers = await _towerRepository.getTowers(_societyId);
       final List<Floor> allFloors = [];
       for (final tower in towers) {
         final towerFloors = await _floorRepository.getFloors(
-          societyId: AppConstants.defaultSocietyId,
+          societyId: _societyId,
           towerId: tower.id,
         );
         allFloors.addAll(towerFloors);
       }
+      if (!mounted) return;
       state = state.copyWith(towers: towers, floors: allFloors);
       await loadFlats();
     } catch (e) {
+      if (!mounted) return;
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
     }
   }
@@ -124,7 +130,7 @@ class FlatNotifier extends StateNotifier<FlatListState> {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
       final flats = await _flatRepository.getFlats(
-        societyId: AppConstants.defaultSocietyId,
+        societyId: _societyId,
         towerId: state.filters.selectedTowerId,
         floorId: state.filters.selectedFloorId,
         flatType: state.filters.selectedFlatType,
@@ -133,8 +139,10 @@ class FlatNotifier extends StateNotifier<FlatListState> {
         sortBy: state.filters.sortBy,
         ascending: state.filters.ascending,
       );
+      if (!mounted) return;
       state = state.copyWith(flats: flats, isLoading: false);
     } catch (e) {
+      if (!mounted) return;
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
     }
   }
@@ -146,10 +154,13 @@ class FlatNotifier extends StateNotifier<FlatListState> {
 
   Future<bool> createFlat(Flat flat) async {
     try {
-      await _flatRepository.createFlat(flat);
+      final flatWithSociety = flat.copyWith(societyId: _societyId);
+      await _flatRepository.createFlat(flatWithSociety);
+      if (!mounted) return true;
       await loadFlats();
       return true;
     } catch (e) {
+      if (!mounted) return false;
       state = state.copyWith(errorMessage: e.toString());
       return false;
     }
@@ -158,9 +169,11 @@ class FlatNotifier extends StateNotifier<FlatListState> {
   Future<bool> updateFlat(Flat flat) async {
     try {
       await _flatRepository.updateFlat(flat);
+      if (!mounted) return true;
       await loadFlats();
       return true;
     } catch (e) {
+      if (!mounted) return false;
       state = state.copyWith(errorMessage: e.toString());
       return false;
     }
@@ -169,9 +182,11 @@ class FlatNotifier extends StateNotifier<FlatListState> {
   Future<bool> deleteFlat(String id) async {
     try {
       await _flatRepository.deleteFlat(id);
+      if (!mounted) return true;
       await loadFlats();
       return true;
     } catch (e) {
+      if (!mounted) return false;
       state = state.copyWith(errorMessage: e.toString());
       return false;
     }
@@ -182,5 +197,7 @@ final flatNotifierProvider = StateNotifierProvider<FlatNotifier, FlatListState>(
   final flatRepo = ref.watch(flatRepositoryProvider);
   final towerRepo = ref.watch(towerRepositoryProvider);
   final floorRepo = ref.watch(floorRepositoryProvider);
-  return FlatNotifier(flatRepo, towerRepo, floorRepo);
+  final activeSociety = ref.watch(activeSocietyProvider).activeSociety;
+  final sId = activeSociety?.id ?? AppConstants.defaultSocietyId;
+  return FlatNotifier(flatRepo, towerRepo, floorRepo, sId);
 });

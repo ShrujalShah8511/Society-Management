@@ -117,7 +117,7 @@ void main() {
       // Delete
       await flatRepo.deleteFlat('flt-test-99');
       expect(
-        () => flatRepo.getFlatById('flt-test-99'),
+        flatRepo.getFlatById('flt-test-99'),
         throwsException,
       );
     });
