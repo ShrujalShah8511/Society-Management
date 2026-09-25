@@ -1,6 +1,6 @@
 {
-  "name": "Shyam Heights Society Management",
-  "short_name": "ShyamHeights",
+  "name": "Society Management Platform",
+  "short_name": "SocietyMgmt",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#0B0F17",

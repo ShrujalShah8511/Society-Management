@@ -37,7 +37,12 @@ class FloorListScreen extends ConsumerWidget {
           // Executive Header Ribbon
           SliverToBoxAdapter(
             child: Container(
-              padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
+              padding: EdgeInsets.fromLTRB(
+                MediaQuery.of(context).size.width < 600 ? 16 : 24,
+                16,
+                MediaQuery.of(context).size.width < 600 ? 16 : 24,
+                14,
+              ),
               decoration: BoxDecoration(
                 color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
                 border: Border(
@@ -49,124 +54,193 @@ class FloorListScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          gradient: AppGradients.primary,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.35),
-                              blurRadius: 10,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.layers_rounded,
-                          color: AppColors.white,
-                          size: 24,
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  'Floor Management',
-                                  style: TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: -0.5,
-                                    color: isDark ? AppColors.slate50 : AppColors.slate900,
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.secondary.withValues(alpha: 0.12),
-                                    borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(
-                                      color: AppColors.secondary.withValues(alpha: 0.3),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    '${state.floors.length} Floors',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.secondary,
-                                    ),
-                                  ),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isMobile = constraints.maxWidth < 620;
+
+                      final headerLeft = Row(
+                        children: [
+                          Container(
+                            width: isMobile ? 38 : 44,
+                            height: isMobile ? 38 : 44,
+                            decoration: BoxDecoration(
+                              gradient: AppGradients.primary,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primary.withValues(alpha: 0.35),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 3),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Multi-level vertical configuration, floor designations, and status control',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: isDark ? AppColors.slate400 : AppColors.slate600,
+                            child: Icon(
+                              Icons.layers_rounded,
+                              color: AppColors.white,
+                              size: isMobile ? 20 : 24,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 4,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  children: [
+                                    Text(
+                                      'Floor Management',
+                                      style: TextStyle(
+                                        fontSize: isMobile ? 18 : 22,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: -0.5,
+                                        color: isDark ? AppColors.slate50 : AppColors.slate900,
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.secondary.withValues(alpha: 0.12),
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                          color: AppColors.secondary.withValues(alpha: 0.3),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        '${state.floors.length} Floors',
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColors.secondary,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Multi-level vertical configuration, floor designations, and status control',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: isDark ? AppColors.slate400 : AppColors.slate600,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      );
+
+                      if (isMobile) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            headerLeft,
+                            if (canManage && selectedTower != null) ...[
+                              const SizedBox(height: 12),
+                              SizedBox(
+                                width: double.infinity,
+                                child: AppButton(
+                                  key: const Key('add_floor_button'),
+                                  text: 'Add Floor',
+                                  icon: Icons.add_rounded,
+                                  height: 38,
+                                  onPressed: () async {
+                                    final result = await FloorFormDialog.show(
+                                      context,
+                                      towerName: selectedTower.name,
+                                    );
+                                    if (result != null) {
+                                      final success = await ref
+                                          .read(floorNotifierProvider.notifier)
+                                          .createFloor(
+                                            floorNumber: result.floorNumber,
+                                            displayName: result.displayName,
+                                            status: result.status,
+                                          );
+                                      if (success && context.mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('Floor added successfully'),
+                                            backgroundColor: AppColors.success,
+                                          ),
+                                        );
+                                      }
+                                    }
+                                  },
+                                ),
                               ),
+                            ],
+                          ],
+                        );
+                      }
+
+                      return Row(
+                        children: [
+                          Expanded(child: headerLeft),
+                          if (canManage && selectedTower != null) ...[
+                            const SizedBox(width: 14),
+                            AppButton(
+                              key: const Key('add_floor_button'),
+                              text: 'Add Floor',
+                              icon: Icons.add_rounded,
+                              height: 42,
+                              onPressed: () async {
+                                final result = await FloorFormDialog.show(
+                                  context,
+                                  towerName: selectedTower.name,
+                                );
+                                if (result != null) {
+                                  final success = await ref
+                                      .read(floorNotifierProvider.notifier)
+                                      .createFloor(
+                                        floorNumber: result.floorNumber,
+                                        displayName: result.displayName,
+                                        status: result.status,
+                                      );
+                                  if (success && context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Floor added successfully'),
+                                        backgroundColor: AppColors.success,
+                                      ),
+                                    );
+                                  }
+                                }
+                              },
                             ),
                           ],
-                        ),
-                      ),
-                      if (canManage && selectedTower != null)
-                        AppButton(
-                          key: const Key('add_floor_button'),
-                          text: 'Add Floor',
-                          icon: Icons.add_rounded,
-                          height: 42,
-                          onPressed: () async {
-                            final result = await FloorFormDialog.show(
-                              context,
-                              towerName: selectedTower.name,
-                            );
-                            if (result != null) {
-                              final success = await ref
-                                  .read(floorNotifierProvider.notifier)
-                                  .createFloor(
-                                    floorNumber: result.floorNumber,
-                                    displayName: result.displayName,
-                                    status: result.status,
-                                  );
-                              if (success && context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Floor added successfully'),
-                                    backgroundColor: AppColors.success,
-                                  ),
-                                );
-                              }
-                            }
-                          },
-                        ),
-                    ],
+                        ],
+                      );
+                    },
                   ),
                   const SizedBox(height: 16),
 
                   // Tower Selector Bar
-                  Row(
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
+                    runSpacing: 8,
                     children: [
-                      const Icon(Icons.apartment_rounded, size: 20, color: AppColors.primary),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Active Tower:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13,
-                          color: isDark ? AppColors.slate300 : AppColors.slate700,
-                        ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.apartment_rounded, size: 18, color: AppColors.primary),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Active Tower:',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13,
+                              color: isDark ? AppColors.slate300 : AppColors.slate700,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 12),
                       if (state.towers.isNotEmpty)
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),

@@ -22,11 +22,13 @@
 | Dashboard | Completed | KPIs (Towers, Floors, Flats, Occupied, Vacant), Occupancy bar, Quick actions |
 | User Profile | Completed | Profile details, Edit name/phone, Change password, Sign out |
 | Settings | Completed | Theme mode (System/Light/Dark), About, Legal placeholders |
-| Verification & Testing | Completed | Unit tests, widget tests, integration flow tests |
+| Verification & Testing | Completed | Unit tests, widget tests, integration flow tests (58 passing tests) |
+| Dynamic Society Branding | Completed | Optional logo upload (Web/Device/URL), reactive favicon/title sync, SocietyLogoWidget monogram fallbacks |
 
 ### Known Issues & Constraints
 * Environment contains MinGit & Flutter SDK (v3.47.2 / Dart v3.13.2) under `scratch/tools/` and configured in User `PATH`.
 * Phase 1 web server runs on `http://localhost:8080`.
+* Default seed society (Shyam Heights) logo initialized to `null`; dynamically customizable per society.
 
 ---
 
@@ -68,3 +70,4 @@
 5. **Society data hierarchy** (`Society -> Tower -> Floor -> Flat`) must maintain relational integrity with `societyId`.
 6. **All data-driven screens** must explicitly handle 4 states: Loading, Empty, Error (with retry), and Success.
 7. **Security**: Never store plain-text passwords, tokens, API secrets, or private credentials in repository files or memory.
+8. **100% Mobile & Desktop UI Feature Parity**: Mobile screens (`_buildMobileScaffold`) must maintain full feature parity with the desktop layout. This includes the hamburger navigation drawer containing all categorized links (Overview, Infrastructure, Organization, Preferences), the active society switcher, user profile card with role badge, and full Sign Out / Logout capabilities with confirmation dialog.

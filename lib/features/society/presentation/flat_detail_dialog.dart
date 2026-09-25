@@ -41,7 +41,12 @@ class FlatDetailDialog extends StatelessWidget {
         children: [
           const Icon(Icons.home_outlined),
           const SizedBox(width: 10),
-          Text('Flat ${flat.flatNumber} Details'),
+          Expanded(
+            child: Text(
+              'Flat ${flat.flatNumber} Details',
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
       content: ConstrainedBox(
@@ -99,9 +104,14 @@ class FlatDetailDialog extends StatelessWidget {
           label,
           style: const TextStyle(fontSize: 14, color: Colors.grey),
         ),
-        Text(
-          value,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+        const SizedBox(width: 12),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ],
     );

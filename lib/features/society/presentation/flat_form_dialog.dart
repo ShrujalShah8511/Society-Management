@@ -131,58 +131,73 @@ class _FlatFormDialogState extends State<FlatFormDialog> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Tower & Floor Pickers
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Tower', style: Theme.of(context).textTheme.labelMedium),
-                          const SizedBox(height: 6),
-                          DropdownButtonFormField<String>(
-                            value: _selectedTowerId,
-                            decoration: const InputDecoration(
-                              contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                            ),
-                            items: widget.towers.map((t) {
-                              return DropdownMenuItem(value: t.id, child: Text(t.name));
-                            }).toList(),
-                            onChanged: (val) {
-                              setState(() {
-                                _selectedTowerId = val;
-                                final newFloors = _getFloorsForTower(val);
-                                _selectedFloorId = newFloors.isNotEmpty ? newFloors.first.id : null;
-                              });
-                            },
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isCompact = constraints.maxWidth < 380;
+                    final towerField = Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Tower', style: Theme.of(context).textTheme.labelMedium),
+                        const SizedBox(height: 6),
+                        DropdownButtonFormField<String>(
+                          value: _selectedTowerId,
+                          decoration: const InputDecoration(
+                            contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                           ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Floor', style: Theme.of(context).textTheme.labelMedium),
-                          const SizedBox(height: 6),
-                          DropdownButtonFormField<String>(
-                            value: _selectedFloorId,
-                            decoration: const InputDecoration(
-                              contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                            ),
-                            items: availableFloors.map((f) {
-                              return DropdownMenuItem(value: f.id, child: Text(f.displayName));
-                            }).toList(),
-                            onChanged: (val) {
-                              setState(() {
-                                _selectedFloorId = val;
-                              });
-                            },
+                          items: widget.towers.map((t) {
+                            return DropdownMenuItem(value: t.id, child: Text(t.name));
+                          }).toList(),
+                          onChanged: (val) {
+                            setState(() {
+                              _selectedTowerId = val;
+                              final newFloors = _getFloorsForTower(val);
+                              _selectedFloorId = newFloors.isNotEmpty ? newFloors.first.id : null;
+                            });
+                          },
+                        ),
+                      ],
+                    );
+
+                    final floorField = Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Floor', style: Theme.of(context).textTheme.labelMedium),
+                        const SizedBox(height: 6),
+                        DropdownButtonFormField<String>(
+                          value: _selectedFloorId,
+                          decoration: const InputDecoration(
+                            contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                           ),
+                          items: availableFloors.map((f) {
+                            return DropdownMenuItem(value: f.id, child: Text(f.displayName));
+                          }).toList(),
+                          onChanged: (val) {
+                            setState(() {
+                              _selectedFloorId = val;
+                            });
+                          },
+                        ),
+                      ],
+                    );
+
+                    if (isCompact) {
+                      return Column(
+                        children: [
+                          towerField,
+                          const SizedBox(height: 14),
+                          floorField,
                         ],
-                      ),
-                    ),
-                  ],
+                      );
+                    }
+
+                    return Row(
+                      children: [
+                        Expanded(child: towerField),
+                        const SizedBox(width: 14),
+                        Expanded(child: floorField),
+                      ],
+                    );
+                  },
                 ),
                 const SizedBox(height: 16),
 
@@ -197,41 +212,56 @@ class _FlatFormDialogState extends State<FlatFormDialog> {
                 const SizedBox(height: 16),
 
                 // Flat Type & Area
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Flat Type', style: Theme.of(context).textTheme.labelMedium),
-                          const SizedBox(height: 6),
-                          DropdownButtonFormField<FlatType>(
-                            value: _flatType,
-                            decoration: const InputDecoration(
-                              contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                            ),
-                            items: FlatType.values.map((t) {
-                              return DropdownMenuItem(value: t, child: Text(t.displayName));
-                            }).toList(),
-                            onChanged: (val) {
-                              if (val != null) setState(() => _flatType = val);
-                            },
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isCompact = constraints.maxWidth < 380;
+                    final flatTypeField = Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Flat Type', style: Theme.of(context).textTheme.labelMedium),
+                        const SizedBox(height: 6),
+                        DropdownButtonFormField<FlatType>(
+                          value: _flatType,
+                          decoration: const InputDecoration(
+                            contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                           ),
+                          items: FlatType.values.map((t) {
+                            return DropdownMenuItem(value: t, child: Text(t.displayName));
+                          }).toList(),
+                          onChanged: (val) {
+                            if (val != null) setState(() => _flatType = val);
+                          },
+                        ),
+                      ],
+                    );
+
+                    final areaField = AppTextField(
+                      key: const Key('flat_area_field'),
+                      controller: _areaController,
+                      label: 'Area (sq. ft.)',
+                      hint: 'e.g. 1150',
+                      keyboardType: TextInputType.number,
+                      validator: (val) => Validators.positiveDouble(val, 'Area'),
+                    );
+
+                    if (isCompact) {
+                      return Column(
+                        children: [
+                          flatTypeField,
+                          const SizedBox(height: 14),
+                          areaField,
                         ],
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: AppTextField(
-                        key: const Key('flat_area_field'),
-                        controller: _areaController,
-                        label: 'Area (sq. ft.)',
-                        hint: 'e.g. 1150',
-                        keyboardType: TextInputType.number,
-                        validator: (val) => Validators.positiveDouble(val, 'Area'),
-                      ),
-                    ),
-                  ],
+                      );
+                    }
+
+                    return Row(
+                      children: [
+                        Expanded(child: flatTypeField),
+                        const SizedBox(width: 14),
+                        Expanded(child: areaField),
+                      ],
+                    );
+                  },
                 ),
                 const SizedBox(height: 16),
 

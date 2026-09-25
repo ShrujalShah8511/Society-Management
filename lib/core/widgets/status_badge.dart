@@ -39,7 +39,7 @@ class StatusBadge extends StatelessWidget {
           backgroundColor: AppColors.secondary.withValues(alpha: 0.14),
           textColor: AppColors.secondary,
           borderColor: AppColors.secondary.withValues(alpha: 0.35),
-          icon: Icons.meeting_room_outlined,
+          icon: Icons.meeting_room_rounded,
           showPulse: true,
         );
       case 'UNDER_MAINTENANCE':

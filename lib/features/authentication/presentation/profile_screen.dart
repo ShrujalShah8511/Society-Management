@@ -179,12 +179,14 @@ class ProfileScreen extends ConsumerWidget {
       );
     }
 
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Profile'),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
+        padding: EdgeInsets.all(isMobile ? 14.0 : 24.0),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 700),
           child: Column(
@@ -193,47 +195,52 @@ class ProfileScreen extends ConsumerWidget {
               // User Card
               Card(
                 child: Padding(
-                  padding: const EdgeInsets.all(24.0),
+                  padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
                   child: Row(
                     children: [
                       CircleAvatar(
-                        radius: 36,
+                        radius: isMobile ? 28 : 36,
                         backgroundColor: AppColors.primary,
                         child: Text(
                           user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
-                          style: const TextStyle(
-                            fontSize: 28,
+                          style: TextStyle(
+                            fontSize: isMobile ? 22 : 28,
                             fontWeight: FontWeight.w700,
                             color: AppColors.white,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 20),
+                      const SizedBox(width: 16),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 4,
+                              crossAxisAlignment: WrapCrossAlignment.center,
                               children: [
                                 Text(
                                   user.name,
                                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                         fontWeight: FontWeight.w700,
+                                        fontSize: isMobile ? 17 : null,
                                       ),
                                 ),
-                                const SizedBox(width: 10),
                                 StatusBadge.forRole(user.role.code),
                               ],
                             ),
                             const SizedBox(height: 6),
                             Text(
                               user.email,
-                              style: const TextStyle(color: AppColors.slate500, fontSize: 14),
+                              style: const TextStyle(color: AppColors.slate500, fontSize: 13),
+                              overflow: TextOverflow.ellipsis,
                             ),
                             const SizedBox(height: 2),
                             Text(
                               'Member of: ${user.societyName}',
-                              style: const TextStyle(color: AppColors.slate500, fontSize: 13),
+                              style: const TextStyle(color: AppColors.slate500, fontSize: 12),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),
@@ -242,23 +249,26 @@ class ProfileScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
               // Contact & Account Details Card
               Card(
                 child: Padding(
-                  padding: const EdgeInsets.all(24.0),
+                  padding: EdgeInsets.all(isMobile ? 16.0 : 24.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'Account Details',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                ),
+                          Expanded(
+                            child: Text(
+                              'Account Details',
+                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: isMobile ? 17 : null,
+                                  ),
+                            ),
                           ),
                           AppButton(
                             text: 'Edit Profile',
@@ -361,9 +371,14 @@ class ProfileScreen extends ConsumerWidget {
           label,
           style: const TextStyle(fontSize: 14, color: AppColors.slate500),
         ),
-        Text(
-          value,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+        const SizedBox(width: 12),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ],
     );

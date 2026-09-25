@@ -18,7 +18,7 @@ void main() {
       expect(Role.fromString(''), Role.resident);
     });
 
-    test('Super Admin has all permissions', () {
+    test('Super Admin has all permissions including society deletion and multi-tenant management', () {
       for (final permission in Permission.values) {
         expect(
           RolePermissions.hasPermission(Role.superAdmin, permission),
@@ -26,13 +26,21 @@ void main() {
           reason: 'Super admin should have ${permission.key}',
         );
       }
+      expect(RolePermissions.canDeleteSociety(Role.superAdmin), isTrue);
+      expect(RolePermissions.canManageAllSocieties(Role.superAdmin), isTrue);
+      expect(RolePermissions.canCreateSociety(Role.superAdmin), isTrue);
     });
 
-    test('Society Admin has management permissions', () {
+    test('Society Admin has tenant management permissions but cannot delete societies or manage platform', () {
       expect(RolePermissions.canManageSociety(Role.societyAdmin), isTrue);
       expect(RolePermissions.canManageTowers(Role.societyAdmin), isTrue);
       expect(RolePermissions.canManageFloors(Role.societyAdmin), isTrue);
       expect(RolePermissions.canManageFlats(Role.societyAdmin), isTrue);
+
+      // Multi-tenant Platform governance boundaries
+      expect(RolePermissions.canDeleteSociety(Role.societyAdmin), isFalse);
+      expect(RolePermissions.canManageAllSocieties(Role.societyAdmin), isFalse);
+      expect(RolePermissions.canCreateSociety(Role.societyAdmin), isFalse);
     });
 
     test('Resident has view-only permissions and cannot manage inventory', () {

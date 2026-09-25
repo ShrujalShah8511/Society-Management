@@ -135,11 +135,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 width: 48,
                                 height: 48,
                                 decoration: BoxDecoration(
-                                  color: AppColors.white,
+                                  gradient: AppGradients.primary,
                                   borderRadius: BorderRadius.circular(14),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: AppColors.primary.withValues(alpha: 0.25),
+                                      color: AppColors.primary.withValues(alpha: 0.3),
                                       blurRadius: 10,
                                       offset: const Offset(0, 3),
                                     ),
@@ -148,12 +148,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(14),
                                   child: Image.asset(
-                                    'assets/images/shyam_heights_logo.png',
+                                    'assets/images/platform_logo.png',
                                     fit: BoxFit.contain,
-                                    errorBuilder: (context, error, stackTrace) => Container(
-                                      decoration: const BoxDecoration(gradient: AppGradients.primary),
-                                      child: const Icon(Icons.apartment_rounded, color: AppColors.white, size: 28),
-                                    ),
+                                    errorBuilder: (context, error, stackTrace) =>
+                                        const Icon(Icons.apartment_rounded, color: AppColors.white, size: 28),
                                   ),
                                 ),
                               ),

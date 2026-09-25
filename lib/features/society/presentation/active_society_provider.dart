@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/providers.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/utils/browser_branding_service.dart';
 import '../domain/society.dart';
 import '../domain/society_repository.dart';
 
@@ -39,6 +40,20 @@ class ActiveSocietyNotifier extends StateNotifier<ActiveSocietyState> {
     loadSocieties();
   }
 
+  void _syncBranding(Society? society) {
+    if (society != null) {
+      BrowserBrandingService.updateBranding(
+        title: '${society.name} — Society Management',
+        logoUrl: society.logoUrl,
+      );
+    } else {
+      BrowserBrandingService.updateBranding(
+        title: 'Society Management Platform',
+        logoUrl: null,
+      );
+    }
+  }
+
   Future<void> loadSocieties({String? preferredActiveId}) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
@@ -50,8 +65,7 @@ class ActiveSocietyNotifier extends StateNotifier<ActiveSocietyState> {
           (s) => s.id == preferredActiveId,
           orElse: () => list.isNotEmpty ? list.first : null as dynamic,
         );
-      } else if (currentActive == null) {
-        // Default to Shyam Heights / defaultSocietyId
+      } else if (currentActive == null || !list.any((s) => s.id == currentActive?.id)) {
         currentActive = list.firstWhere(
           (s) => s.id == AppConstants.defaultSocietyId,
           orElse: () => list.isNotEmpty ? list.first : null as dynamic,
@@ -69,6 +83,7 @@ class ActiveSocietyNotifier extends StateNotifier<ActiveSocietyState> {
         activeSociety: currentActive,
         isLoading: false,
       );
+      _syncBranding(currentActive);
     } catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
     }
@@ -80,6 +95,7 @@ class ActiveSocietyNotifier extends StateNotifier<ActiveSocietyState> {
       orElse: () => state.activeSociety ?? state.allSocieties.first,
     );
     state = state.copyWith(activeSociety: matched);
+    _syncBranding(matched);
   }
 
   Future<Society?> createSociety(Society society) async {
@@ -97,8 +113,11 @@ class ActiveSocietyNotifier extends StateNotifier<ActiveSocietyState> {
   Future<bool> deleteSociety(String societyId) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
+      final wasActive = state.activeSociety?.id == societyId;
       await _repository.deleteSociety(societyId);
-      await loadSocieties();
+      await loadSocieties(
+        preferredActiveId: wasActive ? null : state.activeSociety?.id,
+      );
       return true;
     } catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.toString());

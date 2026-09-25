@@ -27,6 +27,7 @@ enum Permission {
   editSociety('edit_society'),
   manageAllSocieties('manage_all_societies'),
   createSociety('create_society'),
+  deleteSociety('delete_society'),
   switchSociety('switch_society'),
 
   // Towers
@@ -62,6 +63,7 @@ class RolePermissions {
       Permission.editSociety,
       Permission.manageAllSocieties,
       Permission.createSociety,
+      Permission.deleteSociety,
       Permission.switchSociety,
       Permission.viewTowers,
       Permission.manageTowers,
@@ -77,8 +79,6 @@ class RolePermissions {
     Role.societyAdmin: {
       Permission.viewSociety,
       Permission.editSociety,
-      Permission.manageAllSocieties,
-      Permission.createSociety,
       Permission.switchSociety,
       Permission.viewTowers,
       Permission.manageTowers,
@@ -151,4 +151,7 @@ class RolePermissions {
 
   static bool canCreateSociety(Role role) =>
       hasPermission(role, Permission.createSociety);
+
+  static bool canDeleteSociety(Role role) =>
+      hasPermission(role, Permission.deleteSociety);
 }

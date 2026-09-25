@@ -105,85 +105,125 @@ class _FlatListScreenState extends ConsumerState<FlatListScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Top Title & Add Flat Row
-                Row(
-                  children: [
-                    Container(
-                      width: 42,
-                      height: 42,
-                      decoration: BoxDecoration(
-                        gradient: AppGradients.primary,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.35),
-                            blurRadius: 10,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.meeting_room_rounded,
-                        color: AppColors.white,
-                        size: 22,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                'Flat Inventory',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: -0.4,
-                                  color: isDark ? AppColors.slate50 : AppColors.slate900,
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary.withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: AppColors.primary.withValues(alpha: 0.3),
-                                  ),
-                                ),
-                                child: Text(
-                                  '$totalCount Units',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.primary,
-                                  ),
-                                ),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isMobile = constraints.maxWidth < 620;
+
+                    final headerLeft = Row(
+                      children: [
+                        Container(
+                          width: isMobile ? 38 : 42,
+                          height: isMobile ? 38 : 42,
+                          decoration: BoxDecoration(
+                            gradient: AppGradients.primary,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primary.withValues(alpha: 0.35),
+                                blurRadius: 10,
+                                offset: const Offset(0, 3),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Directory of society residential units, real-time occupancy, and floor mapping',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark ? AppColors.slate400 : AppColors.slate600,
+                          child: Icon(
+                            Icons.meeting_room_rounded,
+                            color: AppColors.white,
+                            size: isMobile ? 20 : 22,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 4,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                children: [
+                                  Text(
+                                    'Flat Inventory',
+                                    style: TextStyle(
+                                      fontSize: isMobile ? 18 : 20,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: -0.4,
+                                      color: isDark ? AppColors.slate50 : AppColors.slate900,
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary.withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: AppColors.primary.withValues(alpha: 0.3),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      '$totalCount Units',
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Directory of residential units and occupancy',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isDark ? AppColors.slate400 : AppColors.slate600,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+
+                    if (isMobile) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          headerLeft,
+                          if (canManage && state.towers.isNotEmpty) ...[
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              child: AppButton(
+                                key: const Key('add_flat_button'),
+                                text: 'Add Flat',
+                                icon: Icons.add_rounded,
+                                height: 38,
+                                onPressed: () => _showCreateDialog(context, state.towers, state.floors),
+                              ),
                             ),
+                          ],
+                        ],
+                      );
+                    }
+
+                    return Row(
+                      children: [
+                        Expanded(child: headerLeft),
+                        if (canManage && state.towers.isNotEmpty) ...[
+                          const SizedBox(width: 12),
+                          AppButton(
+                            key: const Key('add_flat_button'),
+                            text: 'Add Flat',
+                            icon: Icons.add_rounded,
+                            height: 38,
+                            onPressed: () => _showCreateDialog(context, state.towers, state.floors),
                           ),
                         ],
-                      ),
-                    ),
-                    if (canManage && state.towers.isNotEmpty)
-                      AppButton(
-                        key: const Key('add_flat_button'),
-                        text: 'Add Flat',
-                        icon: Icons.add_rounded,
-                        height: 38,
-                        onPressed: () => _showCreateDialog(context, state.towers, state.floors),
-                      ),
-                  ],
+                      ],
+                    );
+                  },
                 ),
                 const SizedBox(height: 14),
 
@@ -495,7 +535,7 @@ class _FlatListScreenState extends ConsumerState<FlatListScreen> {
                   return EmptyStateView(
                     title: 'No Flats Found',
                     message: 'No units match the current filters or query.',
-                    icon: Icons.meeting_room_outlined,
+                    icon: Icons.meeting_room_rounded,
                     actionLabel: canManage && state.towers.isNotEmpty ? 'Add Flat' : null,
                     onAction: canManage && state.towers.isNotEmpty
                         ? () => _showCreateDialog(context, state.towers, state.floors)
@@ -505,17 +545,18 @@ class _FlatListScreenState extends ConsumerState<FlatListScreen> {
 
                 return LayoutBuilder(
                   builder: (context, constraints) {
+                    final isMobile = constraints.maxWidth < 650;
                     final crossAxisCount = constraints.maxWidth > 1100
                         ? 3
                         : (constraints.maxWidth > 650 ? 2 : 1);
 
                     return GridView.builder(
-                      padding: const EdgeInsets.all(20),
+                      padding: EdgeInsets.fromLTRB(16, 16, 16, isMobile ? 96 : 24),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: crossAxisCount,
                         crossAxisSpacing: 16,
                         mainAxisSpacing: 16,
-                        mainAxisExtent: 195,
+                        mainAxisExtent: isMobile ? 210 : 195,
                       ),
                       itemCount: state.flats.length,
                       itemBuilder: (context, index) {
@@ -549,7 +590,7 @@ class _FlatListScreenState extends ConsumerState<FlatListScreen> {
       borderRadius: BorderRadius.circular(10),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6.5),
         decoration: BoxDecoration(
           color: isSelected
               ? (isDark ? indicatorColor.withValues(alpha: 0.18) : indicatorColor.withValues(alpha: 0.12))
@@ -739,6 +780,8 @@ class _FlatListScreenState extends ConsumerState<FlatListScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
+                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                      padding: const EdgeInsets.all(4),
                       icon: const Icon(Icons.edit_outlined, size: 18),
                       tooltip: 'Edit Flat',
                       onPressed: () async {
@@ -755,6 +798,8 @@ class _FlatListScreenState extends ConsumerState<FlatListScreen> {
                       },
                     ),
                     IconButton(
+                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                      padding: const EdgeInsets.all(4),
                       icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.error),
                       tooltip: 'Delete Flat',
                       onPressed: () async {

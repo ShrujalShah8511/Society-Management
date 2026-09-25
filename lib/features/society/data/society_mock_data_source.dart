@@ -20,7 +20,7 @@ class SocietyMockDataSource {
     final shyamHeights = Society(
       id: AppConstants.defaultSocietyId,
       name: 'Shyam Heights',
-      logoUrl: 'assets/images/shyam_heights_logo.png',
+      logoUrl: null,
       address: 'Near Sargasan Cross Road, Sargasan',
       city: 'Gandhinagar',
       state: 'Gujarat',
@@ -304,9 +304,6 @@ class SocietyMockDataSource {
 
   Future<void> deleteSociety(String id) async {
     await Future.delayed(const Duration(milliseconds: 250));
-    if (id == AppConstants.defaultSocietyId) {
-      throw const ValidationFailure('Cannot delete default flagship society.');
-    }
     _flats.removeWhere((_, f) => f.societyId == id);
     _floors.removeWhere((_, f) => f.societyId == id);
     _towers.removeWhere((_, t) => t.societyId == id);

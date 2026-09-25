@@ -42,15 +42,25 @@ class SocietyProfileNotifier extends StateNotifier<SocietyProfileState> {
   final SocietyRepository _repository;
   final FileStorageService _fileStorageService;
 
-  SocietyProfileNotifier(this._repository, this._fileStorageService)
-      : super(const SocietyProfileState()) {
-    loadProfile();
+  SocietyProfileNotifier(
+    this._repository,
+    this._fileStorageService, [
+    Society? initialSociety,
+  ]) : super(SocietyProfileState(society: initialSociety)) {
+    if (initialSociety != null) {
+      loadProfile(initialSociety.id);
+    } else {
+      loadProfile(AppConstants.defaultSocietyId);
+    }
   }
 
-  Future<void> loadProfile([String societyId = AppConstants.defaultSocietyId]) async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
+  Future<void> loadProfile([String? societyId]) async {
+    final targetId = (societyId != null && societyId.isNotEmpty)
+        ? societyId
+        : (state.society?.id ?? AppConstants.defaultSocietyId);
+    state = state.copyWith(isLoading: state.society == null, errorMessage: null);
     try {
-      final society = await _repository.getSocietyProfile(societyId);
+      final society = await _repository.getSocietyProfile(targetId);
       state = state.copyWith(society: society, isLoading: false);
     } catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
@@ -81,9 +91,5 @@ final societyProfileNotifierProvider =
   final repository = ref.watch(societyRepositoryProvider);
   final fileStorage = ref.watch(fileStorageServiceProvider);
   final activeSociety = ref.watch(activeSocietyProvider).activeSociety;
-  final notifier = SocietyProfileNotifier(repository, fileStorage);
-  if (activeSociety != null) {
-    notifier.loadProfile(activeSociety.id);
-  }
-  return notifier;
+  return SocietyProfileNotifier(repository, fileStorage, activeSociety);
 });

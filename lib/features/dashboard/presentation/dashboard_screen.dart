@@ -5,6 +5,7 @@ import '../../../core/animations/app_animations.dart';
 import '../../../core/constants/route_constants.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_button.dart';
+import '../../../core/widgets/society_logo_widget.dart';
 import '../../../core/widgets/state_views.dart';
 import '../../../core/widgets/status_badge.dart';
 import '../../authentication/presentation/auth_notifier.dart';
@@ -47,7 +48,10 @@ class DashboardScreen extends ConsumerWidget {
           await ref.read(dashboardNotifierProvider.notifier).loadStats();
         },
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
+          padding: EdgeInsets.symmetric(
+            horizontal: MediaQuery.of(context).size.width < 600 ? 14.0 : 24.0,
+            vertical: 16.0,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -94,7 +98,7 @@ class DashboardScreen extends ConsumerWidget {
                           context,
                           title: 'Total Flats',
                           value: stats?.totalFlats ?? 0,
-                          icon: Icons.door_front_door_outlined,
+                          icon: Icons.door_front_door_rounded,
                           color: AppColors.gold,
                           gradient: AppGradients.accentAmber,
                         ),
@@ -116,7 +120,7 @@ class DashboardScreen extends ConsumerWidget {
                           context,
                           title: 'Vacant Flats',
                           value: stats?.vacantFlats ?? 0,
-                          icon: Icons.meeting_room_outlined,
+                          icon: Icons.meeting_room_rounded,
                           color: AppColors.secondary,
                           gradient: AppGradients.accentCyan,
                         ),
@@ -195,7 +199,7 @@ class DashboardScreen extends ConsumerWidget {
     bool isDark,
   ) {
     return Container(
-      padding: const EdgeInsets.all(22),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         gradient: AppGradients.hero,
         borderRadius: BorderRadius.circular(20),
@@ -210,105 +214,109 @@ class DashboardScreen extends ConsumerWidget {
           ),
         ],
       ),
-      child: Row(
-        children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.3),
-                  blurRadius: 10,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(14),
-              child: society?.logoUrl != null
-                  ? Image.asset(
-                      society!.logoUrl!,
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        decoration: const BoxDecoration(gradient: AppGradients.primary),
-                        child: const Icon(Icons.shield_rounded, color: AppColors.white, size: 28),
-                      ),
-                    )
-                  : Image.asset(
-                      'assets/images/shyam_heights_logo.png',
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        decoration: const BoxDecoration(gradient: AppGradients.primary),
-                        child: const Icon(Icons.shield_rounded, color: AppColors.white, size: 28),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isNarrow = constraints.maxWidth < 620;
+
+          final logoWidget = SocietyLogoWidget(
+            logoUrl: society?.logoUrl,
+            societyName: society?.name ?? 'Society',
+            size: isNarrow ? 44 : 52,
+            borderRadius: 14,
+            fallbackIcon: Icons.apartment_rounded,
+          );
+
+          final titleContent = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text(
+                    'Welcome back, ${user?.name ?? "Administrator"}',
+                    style: TextStyle(
+                      fontSize: isNarrow ? 16 : 20,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.3,
+                      color: AppColors.white,
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.mintNeon.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.mintNeon.withValues(alpha: 0.4)),
+                    ),
+                    child: const Text(
+                      'ONLINE',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.mintNeon,
+                        letterSpacing: 0.5,
                       ),
                     ),
-            ),
-          ),
-          const SizedBox(width: 18),
-          Expanded(
-            child: Column(
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '${society?.name ?? "Shyam Heights"} • ${society?.city ?? "Gandhinagar"}, ${society?.state ?? "Gujarat"}',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.slate300,
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          );
+
+          if (isNarrow) {
+            return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Flexible(
-                      child: Text(
-                        'Welcome back, ${user?.name ?? "Administrator"}',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.3,
-                          color: AppColors.white,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: AppColors.mintNeon.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.mintNeon.withValues(alpha: 0.4)),
-                      ),
-                      child: const Text(
-                        'ONLINE',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.mintNeon,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ),
+                    logoWidget,
+                    const SizedBox(width: 14),
+                    Expanded(child: titleContent),
                   ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  '${society?.name ?? "Shyam Heights"} • ${society?.city ?? "Gandhinagar"}, ${society?.state ?? "Gujarat"}',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: AppColors.slate300,
-                    fontWeight: FontWeight.w500,
+                const SizedBox(height: 14),
+                SizedBox(
+                  width: double.infinity,
+                  child: AppButton(
+                    text: 'View Flats',
+                    icon: Icons.meeting_room_rounded,
+                    height: 38,
+                    onPressed: () => context.go(RouteConstants.flatsPath),
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ],
-            ),
-          ),
-          const SizedBox(width: 16),
-          AppButton(
-            text: 'View Flats',
-            icon: Icons.meeting_room_rounded,
-            height: 40,
-            onPressed: () => context.go(RouteConstants.flatsPath),
-          ),
-        ],
+            );
+          }
+
+          return Row(
+            children: [
+              logoWidget,
+              const SizedBox(width: 18),
+              Expanded(child: titleContent),
+              const SizedBox(width: 16),
+              AppButton(
+                text: 'View Flats',
+                icon: Icons.meeting_room_rounded,
+                height: 40,
+                onPressed: () => context.go(RouteConstants.flatsPath),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -400,27 +408,33 @@ class DashboardScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.14),
-                        borderRadius: BorderRadius.circular(10),
+                Expanded(
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.14),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.pie_chart_outline_rounded, color: AppColors.primary, size: 20),
                       ),
-                      child: const Icon(Icons.pie_chart_outline_rounded, color: AppColors.primary, size: 20),
-                    ),
-                    const SizedBox(width: 12),
-                    const Text(
-                      'Occupancy Telemetry',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-                    ),
-                  ],
+                      const SizedBox(width: 10),
+                      const Expanded(
+                        child: Text(
+                          'Occupancy Telemetry',
+                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withValues(alpha: 0.14),
                     borderRadius: BorderRadius.circular(20),
@@ -429,7 +443,7 @@ class DashboardScreen extends ConsumerWidget {
                   child: Text(
                     '${stats.occupancyRate.toStringAsFixed(1)}% Capacity',
                     style: const TextStyle(
-                      fontSize: 13,
+                      fontSize: 12,
                       fontWeight: FontWeight.w700,
                       color: AppColors.primary,
                     ),
@@ -539,8 +553,11 @@ class DashboardScreen extends ConsumerWidget {
     required LinearGradient gradient,
     required VoidCallback onTap,
   }) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final double cardWidth = screenWidth < 500 ? double.infinity : (screenWidth < 750 ? (screenWidth - 48) / 2 : 220);
+
     return SizedBox(
-      width: 220,
+      width: cardWidth,
       child: HoverLiftCard(
         onTap: onTap,
         padding: const EdgeInsets.all(16),

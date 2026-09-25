@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/constants/app_constants.dart';
 import '../core/theme/app_theme.dart';
 import '../features/settings/presentation/settings_notifier.dart';
+import '../features/society/presentation/active_society_provider.dart';
 import 'router.dart';
 
 class SocietyManagementApp extends ConsumerWidget {
@@ -12,9 +13,12 @@ class SocietyManagementApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
     final settings = ref.watch(settingsNotifierProvider);
+    final activeSociety = ref.watch(activeSocietyProvider).activeSociety;
 
     return MaterialApp.router(
-      title: AppConstants.appName,
+      title: activeSociety != null
+          ? '${activeSociety.name} — ${AppConstants.appName}'
+          : AppConstants.appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,

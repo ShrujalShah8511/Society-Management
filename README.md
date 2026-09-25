@@ -4,10 +4,10 @@ A modern, multi-tenant residential society management platform built for **Web, 
 
 ---
 
-## 🏛️ Platform Architecture & Flagship Society
+## 🏛️ Platform Architecture & Multi-Tenant Infrastructure
 
 - **Platform Super Admin**: Shrujal Shah
-- **Flagship Seed Society**: **Shyam Heights**
+- **Initial Seed Society**: **Shyam Heights**
   - **Location**: Near Sargasan Cross Road, Sargasan, Gandhinagar, Gujarat - 382421
   - **RERA Number**: `PR/GJ/GANDHINAGAR/GANDHINAGAR/OTHERS/MAA10020/130422`
   - **Official Contact**: contact@shyamheights.in | +91 9876543210
