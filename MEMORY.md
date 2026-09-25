@@ -39,6 +39,16 @@
 * **Date**: 2026-09-26
 * **Impact**: Documented in `.agents/skills/solution-architect/SKILL.md`, `SKILLS.md` (Section 0), and `AGENTS.md` (Section 0) as an active operating guideline.
 
+### Decision: Cloudflare Pages, Supabase Backend & Firebase Cloud Services Architecture
+* **Reason**: Scalable, zero-cold-start hosting on Cloudflare Pages edge CDN, managed PostgreSQL + Auth + Storage with RLS multi-tenant security on Supabase, and enterprise Push Notifications + Analytics on Firebase.
+* **Date**: 2026-09-26
+* **Impact**: 
+  - Static SPA hosting configured via `web/_redirects`, `web/_headers`, `wrangler.toml`, and `.github/workflows/deploy_cloudflare_pages.yml`.
+  - Database schema, RLS policies, and triggers created in `supabase/migrations/20260926000000_init_schema.sql` and `supabase/storage_setup.sql`.
+  - Resilient hybrid data layer (`SupabaseClientManager`, `SupabaseAuthDataSource`, `SupabaseSocietyDataSource`, `SupabaseFileStorageService`) with seamless local mock fallback.
+  - FCM push notifications and Firebase Analytics implemented in `lib/core/services/` with web service worker `web/firebase-messaging-sw.js`.
+  - DNS/SSL runbook documented in `docs/cloud_architecture_and_deployment_guide.md`.
+
 ### Decision: Feature-First Clean Architecture
 * **Reason**: Separates UI, state management, domain rules, and data sources cleanly, preventing tight coupling and enabling independent testing.
 * **Date**: 2026-09-09

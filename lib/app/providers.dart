@@ -1,9 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../core/config/app_config.dart';
 import '../core/storage/file_storage_service.dart';
 import '../core/storage/session_storage.dart';
+import '../core/storage/supabase_file_storage_service.dart';
 import '../features/authentication/data/auth_mock_data_source.dart';
 import '../features/authentication/data/auth_repository_impl.dart';
+import '../features/authentication/data/supabase_auth_data_source.dart';
 import '../features/authentication/domain/auth_repository.dart';
 import '../features/dashboard/data/dashboard_repository_impl.dart';
 import '../features/dashboard/domain/dashboard_repository.dart';
@@ -34,7 +37,7 @@ final sessionStorageProvider = Provider<SessionStorage>((ref) {
 });
 
 final fileStorageServiceProvider = Provider<FileStorageService>((ref) {
-  return MockFileStorageService();
+  return SupabaseFileStorageService();
 });
 
 // Mock Data Source Singleton Provider
@@ -48,8 +51,14 @@ final authMockDataSourceProvider = Provider<AuthMockDataSource>((ref) {
 
 // Repositories
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  final dataSource = ref.watch(authMockDataSourceProvider);
   final storage = ref.watch(sessionStorageProvider);
+  if (AppConfig.isSupabaseConfigured) {
+    return AuthRepositoryImpl(
+      dataSource: SupabaseAuthDataSource(),
+      sessionStorage: storage,
+    );
+  }
+  final dataSource = ref.watch(authMockDataSourceProvider);
   return AuthRepositoryImpl(dataSource: dataSource, sessionStorage: storage);
 });
 
