@@ -58,26 +58,28 @@ class EmptyStateView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 48.0),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(20),
-              decoration: const BoxDecoration(
-                color: AppColors.slate100,
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.surfaceDarkHigher : AppColors.slate100,
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, size: 40, color: AppColors.slate500),
+              child: Icon(icon, size: 38, color: isDark ? AppColors.slate300 : AppColors.slate500),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             Text(
               title,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                   ),
               textAlign: TextAlign.center,
             ),
@@ -85,16 +87,17 @@ class EmptyStateView extends StatelessWidget {
             Text(
               message,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.slate500,
+                    color: isDark ? AppColors.slate400 : AppColors.slate500,
                   ),
               textAlign: TextAlign.center,
             ),
             if (actionLabel != null && onAction != null) ...[
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               AppButton(
                 text: actionLabel!,
                 onPressed: onAction,
-                icon: Icons.add,
+                icon: Icons.add_rounded,
+                height: 42,
               ),
             ],
           ],
@@ -113,31 +116,33 @@ class ErrorRetryView extends StatelessWidget {
     super.key,
     required this.message,
     required this.onRetry,
-    this.icon = Icons.error_outline,
+    this.icon = Icons.error_outline_rounded,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 48.0),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(20),
-              decoration: const BoxDecoration(
-                color: AppColors.errorLight,
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.error.withValues(alpha: 0.18) : AppColors.errorLight,
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, size: 40, color: AppColors.error),
+              child: Icon(icon, size: 38, color: AppColors.error),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             Text(
               'Something went wrong',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                   ),
               textAlign: TextAlign.center,
             ),
@@ -145,16 +150,17 @@ class ErrorRetryView extends StatelessWidget {
             Text(
               message,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.slate500,
+                    color: isDark ? AppColors.slate400 : AppColors.slate500,
                   ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             AppButton(
               text: 'Retry',
               onPressed: onRetry,
-              icon: Icons.refresh,
+              icon: Icons.refresh_rounded,
               variant: AppButtonVariant.outlined,
+              height: 42,
             ),
           ],
         ),

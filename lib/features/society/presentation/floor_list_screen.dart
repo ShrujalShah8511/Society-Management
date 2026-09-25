@@ -148,7 +148,7 @@ class FloorListScreen extends ConsumerWidget {
                                   key: const Key('add_floor_button'),
                                   text: 'Add Floor',
                                   icon: Icons.add_rounded,
-                                  height: 38,
+                                  height: 42,
                                   onPressed: () async {
                                     final result = await FloorFormDialog.show(
                                       context,

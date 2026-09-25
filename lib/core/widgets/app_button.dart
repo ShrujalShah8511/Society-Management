@@ -38,6 +38,7 @@ class _AppButtonState extends State<AppButton> {
     Widget buttonChild = Row(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         if (widget.isLoading) ...[
           SizedBox(
@@ -59,7 +60,12 @@ class _AppButtonState extends State<AppButton> {
         ],
         Text(
           widget.text,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, letterSpacing: 0.1),
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+            letterSpacing: 0.1,
+            height: 1.15,
+          ),
         ),
       ],
     );
@@ -98,6 +104,10 @@ class _AppButtonState extends State<AppButton> {
             backgroundColor: Colors.transparent,
             shadowColor: Colors.transparent,
             foregroundColor: AppColors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            minimumSize: Size(0, widget.height),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            alignment: Alignment.center,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
           child: buttonChild,
@@ -111,6 +121,10 @@ class _AppButtonState extends State<AppButton> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.slate700,
               foregroundColor: AppColors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              minimumSize: Size(0, widget.height),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              alignment: Alignment.center,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             child: buttonChild,
@@ -120,6 +134,10 @@ class _AppButtonState extends State<AppButton> {
           buttonWidget = OutlinedButton(
             onPressed: effectiveOnPressed,
             style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              minimumSize: Size(0, widget.height),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              alignment: Alignment.center,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             child: buttonChild,
@@ -128,6 +146,12 @@ class _AppButtonState extends State<AppButton> {
         case AppButtonVariant.text:
           buttonWidget = TextButton(
             onPressed: effectiveOnPressed,
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              minimumSize: Size(0, widget.height),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              alignment: Alignment.center,
+            ),
             child: buttonChild,
           );
           break;
@@ -137,6 +161,10 @@ class _AppButtonState extends State<AppButton> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.error,
               foregroundColor: AppColors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              minimumSize: Size(0, widget.height),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              alignment: Alignment.center,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             child: buttonChild,
@@ -145,6 +173,13 @@ class _AppButtonState extends State<AppButton> {
         default:
           buttonWidget = ElevatedButton(
             onPressed: effectiveOnPressed,
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              minimumSize: Size(0, widget.height),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              alignment: Alignment.center,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
             child: buttonChild,
           );
       }

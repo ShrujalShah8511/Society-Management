@@ -88,10 +88,10 @@ class _FlatListScreenState extends ConsumerState<FlatListScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
-      body: Column(
-        children: [
-          // Pinned Executive Header & Control Bar
-          Container(
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Container(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 14),
             decoration: BoxDecoration(
               color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
@@ -199,7 +199,7 @@ class _FlatListScreenState extends ConsumerState<FlatListScreen> {
                                 key: const Key('add_flat_button'),
                                 text: 'Add Flat',
                                 icon: Icons.add_rounded,
-                                height: 38,
+                                height: 42,
                                 onPressed: () => _showCreateDialog(context, state.towers, state.floors),
                               ),
                             ),
@@ -217,7 +217,7 @@ class _FlatListScreenState extends ConsumerState<FlatListScreen> {
                             key: const Key('add_flat_button'),
                             text: 'Add Flat',
                             icon: Icons.add_rounded,
-                            height: 38,
+                            height: 42,
                             onPressed: () => _showCreateDialog(context, state.towers, state.floors),
                           ),
                         ],
@@ -515,62 +515,69 @@ class _FlatListScreenState extends ConsumerState<FlatListScreen> {
               ],
             ),
           ),
+        ),
+        if (state.isLoading)
+          const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 48),
+              child: LoadingView(message: 'Loading inventory...'),
+            ),
+          )
+        else if (state.errorMessage != null && state.flats.isEmpty)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 36),
+              child: ErrorRetryView(
+                message: state.errorMessage!,
+                onRetry: () => ref.read(flatNotifierProvider.notifier).init(),
+              ),
+            ),
+          )
+        else if (state.flats.isEmpty)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
+              child: EmptyStateView(
+                title: 'No Flats Found',
+                message: 'No units match the current filters or query.',
+                icon: Icons.meeting_room_rounded,
+                actionLabel: canManage && state.towers.isNotEmpty ? 'Add Flat' : null,
+                onAction: canManage && state.towers.isNotEmpty
+                    ? () => _showCreateDialog(context, state.towers, state.floors)
+                    : null,
+              ),
+            ),
+          )
+          else
+            SliverLayoutBuilder(
+              builder: (context, constraints) {
+                final isMobile = constraints.crossAxisExtent < 650;
+                final crossAxisCount = constraints.crossAxisExtent > 1100
+                    ? 3
+                    : (constraints.crossAxisExtent > 650 ? 2 : 1);
 
-          // Inventory Grid / Content
-          Expanded(
-            child: Builder(
-              builder: (context) {
-                if (state.isLoading) {
-                  return const LoadingView(message: 'Loading inventory...');
-                }
-
-                if (state.errorMessage != null && state.flats.isEmpty) {
-                  return ErrorRetryView(
-                    message: state.errorMessage!,
-                    onRetry: () => ref.read(flatNotifierProvider.notifier).init(),
-                  );
-                }
-
-                if (state.flats.isEmpty) {
-                  return EmptyStateView(
-                    title: 'No Flats Found',
-                    message: 'No units match the current filters or query.',
-                    icon: Icons.meeting_room_rounded,
-                    actionLabel: canManage && state.towers.isNotEmpty ? 'Add Flat' : null,
-                    onAction: canManage && state.towers.isNotEmpty
-                        ? () => _showCreateDialog(context, state.towers, state.floors)
-                        : null,
-                  );
-                }
-
-                return LayoutBuilder(
-                  builder: (context, constraints) {
-                    final isMobile = constraints.maxWidth < 650;
-                    final crossAxisCount = constraints.maxWidth > 1100
-                        ? 3
-                        : (constraints.maxWidth > 650 ? 2 : 1);
-
-                    return GridView.builder(
-                      padding: EdgeInsets.fromLTRB(16, 16, 16, isMobile ? 96 : 24),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: crossAxisCount,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                        mainAxisExtent: isMobile ? 210 : 195,
-                      ),
-                      itemCount: state.flats.length,
-                      itemBuilder: (context, index) {
+                return SliverPadding(
+                  padding: EdgeInsets.fromLTRB(16, 16, 16, isMobile ? 96 : 24),
+                  sliver: SliverGrid(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      mainAxisExtent: isMobile ? 210 : 195,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
                         final flat = state.flats[index];
                         final tower = _getTower(state.towers, flat.towerId);
                         final floor = _getFloor(state.floors, flat.floorId);
                         return _buildFlatCard(flat, tower, floor, canManage, isDark);
                       },
-                    );
-                  },
+                      childCount: state.flats.length,
+                    ),
+                  ),
                 );
               },
             ),
-          ),
         ],
       ),
     );

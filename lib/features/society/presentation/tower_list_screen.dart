@@ -218,7 +218,7 @@ class _TowerListScreenState extends ConsumerState<TowerListScreen> {
                                   key: const Key('add_tower_button'),
                                   text: 'Add Tower',
                                   icon: Icons.add_rounded,
-                                  height: 38,
+                                  height: 42,
                                   onPressed: _openAddDialog,
                                 ),
                               ),

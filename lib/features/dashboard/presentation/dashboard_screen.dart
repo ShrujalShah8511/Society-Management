@@ -294,7 +294,7 @@ class DashboardScreen extends ConsumerWidget {
                   child: AppButton(
                     text: 'View Flats',
                     icon: Icons.meeting_room_rounded,
-                    height: 38,
+                    height: 42,
                     onPressed: () => context.go(RouteConstants.flatsPath),
                   ),
                 ),
