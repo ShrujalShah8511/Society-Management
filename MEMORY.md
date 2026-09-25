@@ -34,6 +34,11 @@
 
 ## 2. Architecture Decisions
 
+### Decision: 15-Year Solution Architect & Senior Developer Persona & Standards
+* **Reason**: Ensure all engineering, architecture decisions, code reviews, and refactorings adhere to senior enterprise standards, high cohesion, low coupling, defensive error handling, and production craftsmanship.
+* **Date**: 2026-09-26
+* **Impact**: Documented in `.agents/skills/solution-architect/SKILL.md`, `SKILLS.md` (Section 0), and `AGENTS.md` (Section 0) as an active operating guideline.
+
 ### Decision: Feature-First Clean Architecture
 * **Reason**: Separates UI, state management, domain rules, and data sources cleanly, preventing tight coupling and enabling independent testing.
 * **Date**: 2026-09-09
