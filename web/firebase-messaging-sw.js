@@ -5,12 +5,13 @@ importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-com
 // Initialize Firebase in the service worker
 // In production, these parameters match your Firebase project configuration
 const firebaseConfig = {
-  apiKey: "FIREBASE_API_KEY_PLACEHOLDER",
-  authDomain: "FIREBASE_AUTH_DOMAIN_PLACEHOLDER",
-  projectId: "FIREBASE_PROJECT_ID_PLACEHOLDER",
-  storageBucket: "FIREBASE_STORAGE_BUCKET_PLACEHOLDER",
-  messagingSenderId: "FIREBASE_MESSAGING_SENDER_ID_PLACEHOLDER",
-  appId: "FIREBASE_APP_ID_PLACEHOLDER"
+  apiKey: "AIzaSyCtUhTN25iO3zJvyuahM-T_iohqbU978dc",
+  authDomain: "society-management-c7642.firebaseapp.com",
+  projectId: "society-management-c7642",
+  storageBucket: "society-management-c7642.firebasestorage.app",
+  messagingSenderId: "545312537010",
+  appId: "1:545312537010:web:1e3ec170d99625d1d0ccab",
+  measurementId: "G-ES5P2MYD0N"
 };
 
 if (firebase.apps.length === 0) {
