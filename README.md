@@ -127,8 +127,9 @@ flutter test
 
 ## 📁 Repository Structure
 - [`design/DESIGN.md`](design/DESIGN.md): Product and UX specification document.
-- [`Society_Management_Tech_Stack_Interactive.docx`](Society_Management_Tech_Stack_Interactive.docx): Interactive technology stack breakdown.
+- [`docs/cloud_architecture_and_deployment_guide.md`](docs/cloud_architecture_and_deployment_guide.md): Cloud architecture, Supabase, Firebase, and Cloudflare Pages runbook.
 - [`lib/`](lib/): Production Flutter application source code.
-- [`test/`](test/): 43 comprehensive unit, widget, and integration test suites.
+- [`test/`](test/): 58 comprehensive unit, widget, and integration test suites.
 - [`android/`](android/): Native Android build files and Gradle configuration.
-- [`web/`](web/): Web entry points, manifest, and icons.
+- [`web/`](web/): Web entry points, manifest, headers, redirects, and icons.
+- [`supabase/`](supabase/): PostgreSQL migrations, schema, and seed datasets.

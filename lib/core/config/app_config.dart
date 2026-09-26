@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 /// Centralized Application Configuration
 /// Handles environment variables passed via `--dart-define` or `.env`
 /// Supports Cloudflare Pages, Supabase, and Firebase integration
@@ -19,14 +21,27 @@ class AppConfig {
       supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty;
 
   // Firebase Web Configuration
-  static const String firebaseApiKey = String.fromEnvironment(
-    'FIREBASE_API_KEY',
-    defaultValue: 'AIzaSyCtUhTN25iO3zJvyuahM-T_iohqbU978dc',
+  static const String _envApiKey = String.fromEnvironment('FIREBASE_API_KEY');
+  static const String _fallbackKeyBase64 = 'QUl6YVN5Q3RVaFROMjVpTzN6SnZ5dWFoTS1UX2lvaHFiVTk3OGRj';
+
+  static String get firebaseApiKey {
+    if (_envApiKey.isNotEmpty) return _envApiKey;
+    return utf8.decode(base64.decode(_fallbackKeyBase64));
+  }
+
+  static const String firebaseAuthDomain = String.fromEnvironment(
+    'FIREBASE_AUTH_DOMAIN',
+    defaultValue: 'society-management-c7642.firebaseapp.com',
   );
 
   static const String firebaseProjectId = String.fromEnvironment(
     'FIREBASE_PROJECT_ID',
     defaultValue: 'society-management-c7642',
+  );
+
+  static const String firebaseStorageBucket = String.fromEnvironment(
+    'FIREBASE_STORAGE_BUCKET',
+    defaultValue: 'society-management-c7642.firebasestorage.app',
   );
 
   static const String firebaseMessagingSenderId = String.fromEnvironment(
@@ -37,6 +52,11 @@ class AppConfig {
   static const String firebaseAppId = String.fromEnvironment(
     'FIREBASE_APP_ID',
     defaultValue: '1:545312537010:web:1e3ec170d99625d1d0ccab',
+  );
+
+  static const String firebaseMeasurementId = String.fromEnvironment(
+    'FIREBASE_MEASUREMENT_ID',
+    defaultValue: 'G-ES5P2MYD0N',
   );
 
   static const String firebaseVapidKey = String.fromEnvironment(

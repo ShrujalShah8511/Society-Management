@@ -20,11 +20,14 @@ class AnalyticsService {
     try {
       if (Firebase.apps.isEmpty) {
         await Firebase.initializeApp(
-          options: const FirebaseOptions(
+          options: FirebaseOptions(
             apiKey: AppConfig.firebaseApiKey,
             appId: AppConfig.firebaseAppId,
             messagingSenderId: AppConfig.firebaseMessagingSenderId,
             projectId: AppConfig.firebaseProjectId,
+            authDomain: AppConfig.firebaseAuthDomain,
+            storageBucket: AppConfig.firebaseStorageBucket,
+            measurementId: AppConfig.firebaseMeasurementId,
           ),
         );
       }

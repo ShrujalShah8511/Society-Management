@@ -38,5 +38,15 @@ node_modules/
 .wrangler/
 package-lock.json
 
+# Secrets, Environment & Credentials
+.env
+.env.*
+*.env
+*.pem
+*.key
+*.cert
+*.jks
+*.keystore
+
 # Exceptions to above rules.
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
