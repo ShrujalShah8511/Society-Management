@@ -87,7 +87,7 @@ class _FlatFormDialogState extends State<FlatFormDialog> {
       return;
     }
 
-    final area = double.parse(_areaController.text.trim());
+    final area = double.tryParse(_areaController.text.trim()) ?? 1000.0;
     if (widget.flat != null) {
       final updated = widget.flat!.copyWith(
         towerId: _selectedTowerId!,

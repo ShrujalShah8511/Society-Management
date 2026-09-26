@@ -49,7 +49,7 @@ class _TowerFormDialogState extends State<TowerFormDialog> {
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
 
-    final floorCount = int.parse(_floorsController.text.trim());
+    final floorCount = int.tryParse(_floorsController.text.trim()) ?? 1;
     if (widget.tower != null) {
       final updated = widget.tower!.copyWith(
         name: _nameController.text.trim(),

@@ -86,4 +86,27 @@ class Validators {
     }
     return null;
   }
+
+  /// Sanitizes input strings against HTML tag injection
+  static String sanitize(String? input) {
+    if (input == null) return '';
+    return input
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#x27;')
+        .trim();
+  }
+
+  /// Validates maximum allowable string length to prevent overflow payloads
+  static String? safeText(String? value, {int maxLength = 120, String fieldName = 'Field'}) {
+    if (value == null || value.trim().isEmpty) {
+      return '$fieldName is required';
+    }
+    if (value.trim().length > maxLength) {
+      return '$fieldName cannot exceed $maxLength characters';
+    }
+    return null;
+  }
 }

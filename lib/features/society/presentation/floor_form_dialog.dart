@@ -48,7 +48,7 @@ class _FloorFormDialogState extends State<FloorFormDialog> {
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
 
-    final floorNum = int.parse(_numberController.text.trim());
+    final floorNum = int.tryParse(_numberController.text.trim()) ?? 1;
     if (widget.floor != null) {
       final updated = widget.floor!.copyWith(
         floorNumber: floorNum,
