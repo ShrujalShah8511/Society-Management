@@ -110,7 +110,8 @@ class _SocietyListScreenState extends ConsumerState<SocietyListScreen> {
             const SizedBox(height: 24),
 
             // Active Society Banner
-            if (activeState.activeSociety != null)
+            if (activeState.activeSociety != null &&
+                activeState.allSocieties.any((s) => s.id == activeState.activeSociety!.id))
               _buildActiveSocietyBanner(context, activeState.activeSociety!, isDark),
             const SizedBox(height: 28),
 
@@ -870,10 +871,9 @@ class _CreateSocietyDialogState extends ConsumerState<_CreateSocietyDialog> {
                   const SizedBox(height: 16),
 
                   AppTextField(
-                    label: 'Society Address / Location',
+                    label: 'Society Address / Location (Optional)',
                     controller: _addressController,
                     prefixIcon: Icons.location_on_outlined,
-                    validator: (v) => Validators.required(v, 'Address'),
                   ),
                   const SizedBox(height: 16),
 
@@ -941,17 +941,23 @@ class _CreateSocietyDialogState extends ConsumerState<_CreateSocietyDialog> {
                         return Column(
                           children: [
                             AppTextField(
-                              label: 'Contact Phone',
+                              label: 'Contact Phone (Optional)',
                               controller: _contactController,
                               prefixIcon: Icons.phone_outlined,
-                              validator: (v) => Validators.phone(v),
+                              validator: (v) {
+                                if (v == null || v.trim().isEmpty) return null;
+                                return Validators.phone(v);
+                              },
                             ),
                             const SizedBox(height: 16),
                             AppTextField(
-                              label: 'Official Email',
+                              label: 'Official Email (Optional)',
                               controller: _emailController,
                               prefixIcon: Icons.email_outlined,
-                              validator: (v) => Validators.email(v),
+                              validator: (v) {
+                                if (v == null || v.trim().isEmpty) return null;
+                                return Validators.email(v);
+                              },
                             ),
                           ],
                         );
@@ -960,19 +966,25 @@ class _CreateSocietyDialogState extends ConsumerState<_CreateSocietyDialog> {
                         children: [
                           Expanded(
                             child: AppTextField(
-                              label: 'Contact Phone',
+                              label: 'Contact Phone (Optional)',
                               controller: _contactController,
                               prefixIcon: Icons.phone_outlined,
-                              validator: (v) => Validators.phone(v),
+                              validator: (v) {
+                                if (v == null || v.trim().isEmpty) return null;
+                                return Validators.phone(v);
+                              },
                             ),
                           ),
                           const SizedBox(width: 14),
                           Expanded(
                             child: AppTextField(
-                              label: 'Official Email',
+                              label: 'Official Email (Optional)',
                               controller: _emailController,
                               prefixIcon: Icons.email_outlined,
-                              validator: (v) => Validators.email(v),
+                              validator: (v) {
+                                if (v == null || v.trim().isEmpty) return null;
+                                return Validators.email(v);
+                              },
                             ),
                           ),
                         ],

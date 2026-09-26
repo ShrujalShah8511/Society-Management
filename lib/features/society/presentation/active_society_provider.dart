@@ -7,6 +7,8 @@ import '../../../core/utils/browser_branding_service.dart';
 import '../domain/society.dart';
 import '../domain/society_repository.dart';
 
+const Object _sentinel = Object();
+
 class ActiveSocietyState {
   final Society? activeSociety;
   final List<Society> allSocieties;
@@ -21,13 +23,15 @@ class ActiveSocietyState {
   });
 
   ActiveSocietyState copyWith({
-    Society? activeSociety,
+    Object? activeSociety = _sentinel,
     List<Society>? allSocieties,
     bool? isLoading,
     String? errorMessage,
   }) {
     return ActiveSocietyState(
-      activeSociety: activeSociety ?? this.activeSociety,
+      activeSociety: identical(activeSociety, _sentinel)
+          ? this.activeSociety
+          : activeSociety as Society?,
       allSocieties: allSocieties ?? this.allSocieties,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage,
@@ -60,24 +64,19 @@ class ActiveSocietyNotifier extends StateNotifier<ActiveSocietyState> {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
       final list = await _repository.getSocieties();
-      Society? currentActive = state.activeSociety;
+      Society? currentActive;
 
       if (preferredActiveId != null) {
-        currentActive = list.firstWhere(
-          (s) => s.id == preferredActiveId,
-          orElse: () => list.isNotEmpty ? list.first : null as dynamic,
-        );
-      } else if (currentActive == null || !list.any((s) => s.id == currentActive?.id)) {
-        currentActive = list.firstWhere(
-          (s) => s.id == AppConstants.defaultSocietyId,
-          orElse: () => list.isNotEmpty ? list.first : null as dynamic,
-        );
+        final matches = list.where((s) => s.id == preferredActiveId);
+        currentActive = matches.isNotEmpty ? matches.first : (list.isNotEmpty ? list.first : null);
+      } else if (state.activeSociety != null && list.any((s) => s.id == state.activeSociety!.id)) {
+        currentActive = list.firstWhere((s) => s.id == state.activeSociety!.id);
+      } else if (list.any((s) => s.id == AppConstants.defaultSocietyId)) {
+        currentActive = list.firstWhere((s) => s.id == AppConstants.defaultSocietyId);
+      } else if (list.isNotEmpty) {
+        currentActive = list.first;
       } else {
-        // Refresh currently active society from latest list
-        currentActive = list.firstWhere(
-          (s) => s.id == currentActive?.id,
-          orElse: () => list.isNotEmpty ? list.first : null as dynamic,
-        );
+        currentActive = null;
       }
 
       state = state.copyWith(
@@ -86,20 +85,24 @@ class ActiveSocietyNotifier extends StateNotifier<ActiveSocietyState> {
         isLoading: false,
       );
       _syncBranding(currentActive);
-      unawaited(PushNotificationService.instance.subscribeToSociety(currentActive.id));
+      if (currentActive != null) {
+        unawaited(PushNotificationService.instance.subscribeToSociety(currentActive.id));
+      }
     } catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
     }
   }
 
   Future<void> selectSociety(String societyId) async {
-    final matched = state.allSocieties.firstWhere(
-      (s) => s.id == societyId,
-      orElse: () => state.activeSociety ?? state.allSocieties.first,
-    );
+    final matches = state.allSocieties.where((s) => s.id == societyId);
+    final matched = matches.isNotEmpty
+        ? matches.first
+        : (state.allSocieties.isNotEmpty ? state.allSocieties.first : null);
     state = state.copyWith(activeSociety: matched);
     _syncBranding(matched);
-    unawaited(PushNotificationService.instance.subscribeToSociety(matched.id));
+    if (matched != null) {
+      unawaited(PushNotificationService.instance.subscribeToSociety(matched.id));
+    }
   }
 
   Future<Society?> createSociety(Society society) async {

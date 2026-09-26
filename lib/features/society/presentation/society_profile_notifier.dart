@@ -1,10 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/providers.dart';
-import '../../../core/constants/app_constants.dart';
 import '../../../core/storage/file_storage_service.dart';
 import '../domain/society.dart';
 import '../domain/society_repository.dart';
 import 'active_society_provider.dart';
+
+const Object _profileSentinel = Object();
 
 class SocietyProfileState {
   final Society? society;
@@ -22,14 +23,14 @@ class SocietyProfileState {
   });
 
   SocietyProfileState copyWith({
-    Society? society,
+    Object? society = _profileSentinel,
     bool? isLoading,
     bool? isSaving,
     String? errorMessage,
     String? successMessage,
   }) {
     return SocietyProfileState(
-      society: society ?? this.society,
+      society: identical(society, _profileSentinel) ? this.society : society as Society?,
       isLoading: isLoading ?? this.isLoading,
       isSaving: isSaving ?? this.isSaving,
       errorMessage: errorMessage,
@@ -49,15 +50,17 @@ class SocietyProfileNotifier extends StateNotifier<SocietyProfileState> {
   ]) : super(SocietyProfileState(society: initialSociety)) {
     if (initialSociety != null) {
       loadProfile(initialSociety.id);
-    } else {
-      loadProfile(AppConstants.defaultSocietyId);
     }
   }
 
   Future<void> loadProfile([String? societyId]) async {
     final targetId = (societyId != null && societyId.isNotEmpty)
         ? societyId
-        : (state.society?.id ?? AppConstants.defaultSocietyId);
+        : state.society?.id;
+    if (targetId == null) {
+      state = state.copyWith(society: null, isLoading: false);
+      return;
+    }
     state = state.copyWith(isLoading: state.society == null, errorMessage: null);
     try {
       final society = await _repository.getSocietyProfile(targetId);
