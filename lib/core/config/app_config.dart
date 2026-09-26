@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 
 /// Centralized Application Configuration
 /// Handles environment variables passed via `--dart-define` or `.env`
@@ -67,9 +68,7 @@ class AppConfig {
   static bool get isFirebaseConfigured =>
       firebaseApiKey.isNotEmpty && firebaseProjectId.isNotEmpty;
 
-  // Environment Mode
-  static const bool isProduction = bool.fromEnvironment(
-    'dart.vm.product',
-    defaultValue: false,
-  );
+  // L-04 Fix: Use kReleaseMode (correct for Flutter web) instead of dart.vm.product
+  // dart.vm.product is only set in Dart VM (mobile/desktop), always false on web
+  static bool get isProduction => kReleaseMode;
 }

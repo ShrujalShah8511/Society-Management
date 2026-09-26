@@ -13,7 +13,7 @@ class AnalyticsService {
   /// Initializes Firebase Analytics if Firebase is configured
   Future<void> initialize() async {
     if (!AppConfig.isFirebaseConfigured) {
-      debugPrint('[AnalyticsService] Firebase unconfigured. Operating in offline analytics mode.');
+      if (kDebugMode) debugPrint('[AnalyticsService] Firebase unconfigured. Operating in offline analytics mode.');
       return;
     }
 
@@ -34,9 +34,9 @@ class AnalyticsService {
 
       _analytics = FirebaseAnalytics.instance;
       await _analytics?.setAnalyticsCollectionEnabled(true);
-      debugPrint('[AnalyticsService] Firebase Analytics initialized.');
+      if (kDebugMode) debugPrint('[AnalyticsService] Firebase Analytics initialized.');
     } catch (e) {
-      debugPrint('[AnalyticsService] Initialization error: $e');
+      if (kDebugMode) debugPrint('[AnalyticsService] Initialization error: $e');
     }
   }
 
@@ -45,7 +45,7 @@ class AnalyticsService {
     try {
       await _analytics?.logLogin(loginMethod: method);
     } catch (e) {
-      debugPrint('[AnalyticsService] logLogin error: $e');
+      if (kDebugMode) debugPrint('[AnalyticsService] logLogin error: $e');
     }
   }
 
@@ -54,7 +54,7 @@ class AnalyticsService {
     try {
       await _analytics?.logScreenView(screenName: screenName);
     } catch (e) {
-      debugPrint('[AnalyticsService] logScreenView error: $e');
+      if (kDebugMode) debugPrint('[AnalyticsService] logScreenView error: $e');
     }
   }
 
@@ -69,7 +69,7 @@ class AnalyticsService {
         },
       );
     } catch (e) {
-      debugPrint('[AnalyticsService] logSocietySwitched error: $e');
+      if (kDebugMode) debugPrint('[AnalyticsService] logSocietySwitched error: $e');
     }
   }
 
@@ -85,7 +85,7 @@ class AnalyticsService {
         },
       );
     } catch (e) {
-      debugPrint('[AnalyticsService] logFlatAction error: $e');
+      if (kDebugMode) debugPrint('[AnalyticsService] logFlatAction error: $e');
     }
   }
 }

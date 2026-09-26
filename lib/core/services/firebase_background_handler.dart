@@ -4,5 +4,5 @@ import 'package:flutter/foundation.dart';
 /// Top-level background message handler for Firebase Cloud Messaging isolates.
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  debugPrint('[FirebaseMessaging] Background message received: ${message.messageId}');
+  if (kDebugMode) debugPrint('[FirebaseMessaging] Background message received: ${message.messageId}');
 }

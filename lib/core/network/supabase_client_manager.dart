@@ -11,7 +11,7 @@ class SupabaseClientManager {
   /// Initializes Supabase if credentials are provided in AppConfig
   static Future<void> initialize() async {
     if (!AppConfig.isSupabaseConfigured) {
-      debugPrint('[SupabaseClientManager] Supabase credentials not found. Operating in local mock mode.');
+      if (kDebugMode) debugPrint('[SupabaseClientManager] Supabase credentials not found. Operating in local mock mode.');
       return;
     }
 
@@ -21,9 +21,9 @@ class SupabaseClientManager {
         anonKey: AppConfig.supabaseAnonKey,
       );
       _isInitialized = true;
-      debugPrint('[SupabaseClientManager] Supabase initialized successfully.');
+      if (kDebugMode) debugPrint('[SupabaseClientManager] Supabase initialized successfully.');
     } catch (e) {
-      debugPrint('[SupabaseClientManager] Failed to initialize Supabase: $e');
+      if (kDebugMode) debugPrint('[SupabaseClientManager] Failed to initialize Supabase: $e');
     }
   }
 

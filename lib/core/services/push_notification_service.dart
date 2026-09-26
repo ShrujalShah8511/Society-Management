@@ -17,7 +17,7 @@ class PushNotificationService {
   /// Initializes Firebase Cloud Messaging if Firebase is configured
   Future<void> initialize() async {
     if (!AppConfig.isFirebaseConfigured) {
-      debugPrint('[PushNotificationService] Firebase unconfigured. Operating in offline notification mode.');
+      if (kDebugMode) debugPrint('[PushNotificationService] Firebase unconfigured. Operating in offline notification mode.');
       return;
     }
 
@@ -47,7 +47,7 @@ class PushNotificationService {
         provisional: false,
       );
 
-      debugPrint('[PushNotificationService] Permission status: ${settings?.authorizationStatus}');
+      if (kDebugMode) debugPrint('[PushNotificationService] Permission status: ${settings?.authorizationStatus}');
 
       // Retrieve FCM Token
       if (kIsWeb) {
@@ -58,20 +58,20 @@ class PushNotificationService {
         _fcmToken = await _messaging?.getToken();
       }
 
-      debugPrint('[PushNotificationService] FCM Token: $_fcmToken');
+      if (kDebugMode) debugPrint('[PushNotificationService] FCM Token: $_fcmToken');
 
       // Listen to foreground notifications
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-        debugPrint('[PushNotificationService] Foreground notification received: ${message.notification?.title}');
+        if (kDebugMode) debugPrint('[PushNotificationService] Foreground notification received: ${message.notification?.title}');
       });
 
       // Token refresh listener
       _messaging?.onTokenRefresh.listen((String newToken) {
         _fcmToken = newToken;
-        debugPrint('[PushNotificationService] FCM Token refreshed: $newToken');
+        if (kDebugMode) debugPrint('[PushNotificationService] FCM Token refreshed: $newToken');
       });
     } catch (e) {
-      debugPrint('[PushNotificationService] Initialization error: $e');
+      if (kDebugMode) debugPrint('[PushNotificationService] Initialization error: $e');
     }
   }
 
@@ -80,9 +80,9 @@ class PushNotificationService {
     if (_messaging == null || kIsWeb) return;
     try {
       await _messaging?.subscribeToTopic('society_$societyId');
-      debugPrint('[PushNotificationService] Subscribed to topic: society_$societyId');
+      if (kDebugMode) debugPrint('[PushNotificationService] Subscribed to topic: society_$societyId');
     } catch (e) {
-      debugPrint('[PushNotificationService] Failed to subscribe to topic: $e');
+      if (kDebugMode) debugPrint('[PushNotificationService] Failed to subscribe to topic: $e');
     }
   }
 }

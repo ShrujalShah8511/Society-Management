@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -19,8 +20,8 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _identifierController = TextEditingController(text: 'admin@society.com');
-  final _passwordController = TextEditingController(text: 'admin123');
+  final _identifierController = TextEditingController();
+  final _passwordController = TextEditingController();
   String _selectedRole = 'Society Admin';
 
   @override
@@ -287,37 +288,38 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                           const SizedBox(height: 28),
 
-                          // Quick Fill Roles for Fast Evaluation
-                          Row(
-                            children: [
-                              Expanded(child: Divider(color: isDark ? AppColors.borderDark : AppColors.borderLight)),
-                              const Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 10),
-                                child: Text(
-                                  'DEMO QUICK-LOGIN',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 0.8,
-                                    color: AppColors.slate500,
+                          // Quick Fill Roles — shown ONLY in debug/dev builds, never in production
+                          if (kDebugMode) ...[  
+                            Row(
+                              children: [
+                                Expanded(child: Divider(color: isDark ? AppColors.borderDark : AppColors.borderLight)),
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 10),
+                                  child: Text(
+                                    'DEV QUICK-LOGIN',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.8,
+                                      color: AppColors.slate500,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              Expanded(child: Divider(color: isDark ? AppColors.borderDark : AppColors.borderLight)),
-                            ],
-                          ),
-                          const SizedBox(height: 14),
-
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: [
-                              _buildRolePill('Society Admin', 'admin@society.com', 'admin123', Icons.admin_panel_settings_outlined),
-                              _buildRolePill('Resident', 'resident@society.com', 'resident123', Icons.home_outlined),
-                              _buildRolePill('Super Admin', 'superadmin@society.com', 'super123', Icons.security_outlined),
-                              _buildRolePill('Security', 'security@society.com', 'security123', Icons.shield_outlined),
-                            ],
-                          ),
+                                Expanded(child: Divider(color: isDark ? AppColors.borderDark : AppColors.borderLight)),
+                              ],
+                            ),
+                            const SizedBox(height: 14),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                _buildRolePill('Society Admin', 'admin@society.com', 'admin123', Icons.admin_panel_settings_outlined),
+                                _buildRolePill('Resident', 'resident@society.com', 'resident123', Icons.home_outlined),
+                                _buildRolePill('Super Admin', 'superadmin@society.com', 'super123', Icons.security_outlined),
+                                _buildRolePill('Security', 'security@society.com', 'security123', Icons.shield_outlined),
+                              ],
+                            ),
+                          ],
                         ],
                       ),
                     ),

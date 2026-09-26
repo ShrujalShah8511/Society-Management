@@ -56,7 +56,20 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Permission Guard for specific route sections
       final userRole = authState.role;
-      if (currentLoc.startsWith(RouteConstants.towersPath) &&
+
+      // Only superAdmin/societyAdmin can manage inventory
+      final isAdminRoute = currentLoc.startsWith(RouteConstants.towersPath) ||
+          currentLoc.startsWith(RouteConstants.floorsPath) ||
+          currentLoc.startsWith(RouteConstants.flatsPath) ||
+          currentLoc.startsWith(RouteConstants.societiesPath);
+
+      if (isAdminRoute &&
+          !RolePermissions.hasPermission(userRole, Permission.viewTowers)) {
+        return RouteConstants.dashboardPath;
+      }
+
+      // Settings accessible only to admins
+      if (currentLoc.startsWith(RouteConstants.settingsPath) &&
           !RolePermissions.hasPermission(userRole, Permission.viewTowers)) {
         return RouteConstants.dashboardPath;
       }

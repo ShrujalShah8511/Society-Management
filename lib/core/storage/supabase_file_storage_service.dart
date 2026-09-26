@@ -18,7 +18,7 @@ class SupabaseFileStorageService implements FileStorageService {
   }) async {
     final client = SupabaseClientManager.client;
     if (client == null) {
-      debugPrint('[SupabaseFileStorageService] Supabase not initialized, falling back to mock storage.');
+      if (kDebugMode) debugPrint('[SupabaseFileStorageService] Supabase not initialized, falling back to mock storage.');
       return _fallbackMock.uploadFile(
         fileName: fileName,
         bytes: bytes,
@@ -42,7 +42,7 @@ class SupabaseFileStorageService implements FileStorageService {
       final publicUrl = client.storage.from(bucketName).getPublicUrl(path);
       return publicUrl;
     } catch (e) {
-      debugPrint('[SupabaseFileStorageService] Upload error: $e');
+      if (kDebugMode) debugPrint('[SupabaseFileStorageService] Upload error: $e');
       return _fallbackMock.uploadFile(
         fileName: fileName,
         bytes: bytes,
@@ -67,7 +67,7 @@ class SupabaseFileStorageService implements FileStorageService {
         await client.storage.from(bucketName).remove([path]);
       }
     } catch (e) {
-      debugPrint('[SupabaseFileStorageService] Delete error: $e');
+      if (kDebugMode) debugPrint('[SupabaseFileStorageService] Delete error: $e');
     }
   }
 }

@@ -20,7 +20,7 @@ class SupabaseAuthDataSource implements AuthDataSource {
   }) async {
     final client = _client;
     if (client == null) {
-      debugPrint('[SupabaseAuthDataSource] Supabase unconfigured, falling back to mock login.');
+      if (kDebugMode) debugPrint('[SupabaseAuthDataSource] Supabase unconfigured, falling back to mock login.');
       return _fallbackMock.login(emailOrMobile: emailOrMobile, password: password);
     }
 
@@ -65,7 +65,7 @@ class SupabaseAuthDataSource implements AuthDataSource {
         user: user,
       );
     } catch (e) {
-      debugPrint('[SupabaseAuthDataSource] Supabase login error: $e, trying mock fallback.');
+      if (kDebugMode) debugPrint('[SupabaseAuthDataSource] Supabase login error: $e, trying mock fallback.');
       return _fallbackMock.login(emailOrMobile: emailOrMobile, password: password);
     }
   }
@@ -80,7 +80,7 @@ class SupabaseAuthDataSource implements AuthDataSource {
     try {
       await client.auth.resetPasswordForEmail(emailOrMobile.trim());
     } catch (e) {
-      debugPrint('[SupabaseAuthDataSource] Reset password error: $e');
+      if (kDebugMode) debugPrint('[SupabaseAuthDataSource] Reset password error: $e');
       return _fallbackMock.sendPasswordReset(emailOrMobile: emailOrMobile);
     }
   }
@@ -141,7 +141,7 @@ class SupabaseAuthDataSource implements AuthDataSource {
         createdAt: DateTime.now(),
       );
     } catch (e) {
-      debugPrint('[SupabaseAuthDataSource] Update profile error: $e');
+      if (kDebugMode) debugPrint('[SupabaseAuthDataSource] Update profile error: $e');
       return _fallbackMock.updateProfile(
         userId: userId,
         name: name,
@@ -167,11 +167,23 @@ class SupabaseAuthDataSource implements AuthDataSource {
     }
 
     try {
+      // H-03 Fix: Re-authenticate with current password before allowing change
+      // This prevents session hijack attacks from bypassing password verification
+      final currentUser = client.auth.currentUser;
+      if (currentUser?.email == null) {
+        throw Exception('Cannot verify identity: no current user email found.');
+      }
+      // Verify current password by attempting sign-in
+      await client.auth.signInWithPassword(
+        email: currentUser!.email!,
+        password: currentPassword,
+      );
+      // Only proceed if verification passed
       await client.auth.updateUser(
         sb.UserAttributes(password: newPassword),
       );
     } catch (e) {
-      debugPrint('[SupabaseAuthDataSource] Change password error: $e');
+      if (kDebugMode) debugPrint('[SupabaseAuthDataSource] Change password error: $e');
       return _fallbackMock.changePassword(
         userId: userId,
         currentPassword: currentPassword,

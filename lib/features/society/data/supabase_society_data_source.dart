@@ -39,7 +39,7 @@ class SupabaseSocietyDataSource implements SocietyDataSource {
       final data = await client.from('societies').select().order('name');
       return (data as List).map((row) => _mapRowToSociety(row as Map<String, dynamic>)).toList();
     } catch (e) {
-      debugPrint('[SupabaseSocietyDataSource] getSocieties error: $e. Falling back to mock.');
+      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] getSocieties error: $e. Falling back to mock.');
       return _fallbackMock.getSocieties();
     }
   }
@@ -53,7 +53,7 @@ class SupabaseSocietyDataSource implements SocietyDataSource {
       final row = await client.from('societies').select().eq('id', societyId).single();
       return _mapRowToSociety(row);
     } catch (e) {
-      debugPrint('[SupabaseSocietyDataSource] getSocietyProfile error: $e. Falling back to mock.');
+      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] getSocietyProfile error: $e. Falling back to mock.');
       return _fallbackMock.getSocietyProfile(societyId);
     }
   }
@@ -72,7 +72,7 @@ class SupabaseSocietyDataSource implements SocietyDataSource {
       }).select().single();
       return _mapRowToSociety(row);
     } catch (e) {
-      debugPrint('[SupabaseSocietyDataSource] createSociety error: $e. Falling back to mock.');
+      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] createSociety error: $e. Falling back to mock.');
       return _fallbackMock.createSociety(society);
     }
   }
@@ -91,7 +91,7 @@ class SupabaseSocietyDataSource implements SocietyDataSource {
       }).eq('id', society.id).select().single();
       return _mapRowToSociety(row);
     } catch (e) {
-      debugPrint('[SupabaseSocietyDataSource] updateSocietyProfile error: $e. Falling back to mock.');
+      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] updateSocietyProfile error: $e. Falling back to mock.');
       return _fallbackMock.updateSocietyProfile(society);
     }
   }
@@ -104,7 +104,7 @@ class SupabaseSocietyDataSource implements SocietyDataSource {
     try {
       await client.from('societies').delete().eq('id', societyId);
     } catch (e) {
-      debugPrint('[SupabaseSocietyDataSource] deleteSociety error: $e. Falling back to mock.');
+      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] deleteSociety error: $e. Falling back to mock.');
       return _fallbackMock.deleteSociety(societyId);
     }
   }
@@ -123,7 +123,7 @@ class SupabaseSocietyDataSource implements SocietyDataSource {
       final data = await client.from('towers').select().eq('society_id', normSocietyId).order('name');
       return (data as List).map((row) => _mapRowToTower(row as Map<String, dynamic>)).toList();
     } catch (e) {
-      debugPrint('[SupabaseSocietyDataSource] getTowers error: $e. Falling back to mock.');
+      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] getTowers error: $e. Falling back to mock.');
       return _fallbackMock.getTowers(societyId);
     }
   }
@@ -155,7 +155,7 @@ class SupabaseSocietyDataSource implements SocietyDataSource {
       }).select().single();
       return _mapRowToTower(row);
     } catch (e) {
-      debugPrint('[SupabaseSocietyDataSource] createTower error: $e. Falling back to mock.');
+      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] createTower error: $e. Falling back to mock.');
       return _fallbackMock.createTower(tower);
     }
   }
@@ -304,7 +304,7 @@ class SupabaseSocietyDataSource implements SocietyDataSource {
 
       return flats;
     } catch (e) {
-      debugPrint('[SupabaseSocietyDataSource] getFlats error: $e. Falling back to mock.');
+      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] getFlats error: $e. Falling back to mock.');
       return _fallbackMock.getFlats(
         societyId: societyId,
         towerId: towerId,
@@ -349,7 +349,7 @@ class SupabaseSocietyDataSource implements SocietyDataSource {
       }).select().single();
       return _mapRowToFlat(row);
     } catch (e) {
-      debugPrint('[SupabaseSocietyDataSource] createFlat error: $e. Falling back to mock.');
+      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] createFlat error: $e. Falling back to mock.');
       return _fallbackMock.createFlat(flat);
     }
   }
@@ -379,9 +379,9 @@ class SupabaseSocietyDataSource implements SocietyDataSource {
 
     try {
       await client.from('flats').delete().eq('id', id);
-      debugPrint('[SupabaseSocietyDataSource] Deleted flat $id from PostgreSQL.');
+      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] Deleted flat $id from PostgreSQL.');
     } catch (e) {
-      debugPrint('[SupabaseSocietyDataSource] deleteFlat error: $e. Falling back to mock.');
+      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] deleteFlat error: $e. Falling back to mock.');
       return _fallbackMock.deleteFlat(id);
     }
   }
