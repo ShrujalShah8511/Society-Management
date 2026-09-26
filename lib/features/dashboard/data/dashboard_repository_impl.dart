@@ -13,6 +13,7 @@ class DashboardRepositoryImpl implements DashboardRepository {
     // Computes statistics directly from live society state
     try {
       final towers = await _societyDataSource.getTowers(societyId);
+      final floors = await _societyDataSource.getFloors(societyId: societyId);
       final flats = await _societyDataSource.getFlats(societyId: societyId);
 
       int occupied = 0;
@@ -24,24 +25,27 @@ class DashboardRepositoryImpl implements DashboardRepository {
         if (f.occupancyStatus == OccupancyStatus.underMaintenance) underMaintenance++;
       }
 
-      final floorsCount = _societyDataSource.getTotalFloors(societyId);
+      int totalFloors = floors.length;
+      if (totalFloors == 0 && towers.isNotEmpty) {
+        totalFloors = towers.fold<int>(0, (sum, t) => sum + t.floorCount);
+      }
 
       return DashboardStats(
-        totalTowers: towers.isNotEmpty ? towers.length : _societyDataSource.getTotalTowers(societyId),
-        totalFloors: floorsCount > 0 ? floorsCount : 2,
+        totalTowers: towers.length,
+        totalFloors: totalFloors,
         totalFlats: flats.length,
         occupiedFlats: occupied,
         vacantFlats: vacant,
         underMaintenanceFlats: underMaintenance,
       );
     } catch (_) {
-      return DashboardStats(
-        totalTowers: _societyDataSource.getTotalTowers(societyId),
-        totalFloors: _societyDataSource.getTotalFloors(societyId),
-        totalFlats: _societyDataSource.getTotalFlats(societyId),
-        occupiedFlats: _societyDataSource.getOccupiedFlats(societyId),
-        vacantFlats: _societyDataSource.getVacantFlats(societyId),
-        underMaintenanceFlats: _societyDataSource.getUnderMaintenanceFlats(societyId),
+      return const DashboardStats(
+        totalTowers: 0,
+        totalFloors: 0,
+        totalFlats: 0,
+        occupiedFlats: 0,
+        vacantFlats: 0,
+        underMaintenanceFlats: 0,
       );
     }
   }

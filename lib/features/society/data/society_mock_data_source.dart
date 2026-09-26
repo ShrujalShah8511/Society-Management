@@ -360,10 +360,13 @@ class SocietyMockDataSource implements SocietyDataSource {
 
   // --- Floor Operations ---
   @override
-  Future<List<Floor>> getFloors({required String societyId, required String towerId}) async {
+  Future<List<Floor>> getFloors({required String societyId, String? towerId}) async {
     await Future.delayed(const Duration(milliseconds: 200));
+    final sId = societyId.isEmpty ? AppConstants.defaultSocietyId : societyId;
     return _floors.values
-        .where((f) => f.societyId == societyId && f.towerId == towerId)
+        .where((f) =>
+            (f.societyId == sId || f.societyId.isEmpty) &&
+            (towerId == null || towerId.isEmpty || f.towerId == towerId))
         .toList()
       ..sort((a, b) => a.floorNumber.compareTo(b.floorNumber));
   }

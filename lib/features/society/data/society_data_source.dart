@@ -21,7 +21,7 @@ abstract class SocietyDataSource {
   Future<void> deleteTower(String id);
 
   // Floors
-  Future<List<Floor>> getFloors({required String societyId, required String towerId});
+  Future<List<Floor>> getFloors({required String societyId, String? towerId});
   Future<Floor> createFloor(Floor floor);
   Future<Floor> updateFloor(Floor floor);
   Future<void> deleteFloor(String id);

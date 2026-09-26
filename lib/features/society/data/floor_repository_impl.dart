@@ -8,7 +8,7 @@ class FloorRepositoryImpl implements FloorRepository {
   FloorRepositoryImpl(this._dataSource);
 
   @override
-  Future<List<Floor>> getFloors({required String societyId, required String towerId}) {
+  Future<List<Floor>> getFloors({required String societyId, String? towerId}) {
     return _dataSource.getFloors(societyId: societyId, towerId: towerId);
   }
 

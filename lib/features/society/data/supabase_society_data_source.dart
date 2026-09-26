@@ -194,14 +194,22 @@ class SupabaseSocietyDataSource implements SocietyDataSource {
   // ===========================================================================
 
   @override
-  Future<List<Floor>> getFloors({required String societyId, required String towerId}) async {
+  Future<List<Floor>> getFloors({required String societyId, String? towerId}) async {
     final client = _client;
     if (client == null) return _fallbackMock.getFloors(societyId: societyId, towerId: towerId);
 
     try {
-      final data = await client.from('floors').select().eq('tower_id', towerId).order('floor_number');
+      final normSocietyId = _normalizeSocietyId(societyId);
+      var query = client.from('floors').select();
+      if (towerId != null && towerId.isNotEmpty) {
+        query = query.eq('tower_id', towerId);
+      } else {
+        query = query.eq('society_id', normSocietyId);
+      }
+      final data = await query.order('floor_number');
       return (data as List).map((row) => _mapRowToFloor(row as Map<String, dynamic>)).toList();
     } catch (e) {
+      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] getFloors error: $e. Falling back to mock.');
       return _fallbackMock.getFloors(societyId: societyId, towerId: towerId);
     }
   }
@@ -451,20 +459,20 @@ class SupabaseSocietyDataSource implements SocietyDataSource {
   // ===========================================================================
 
   @override
-  int getTotalTowers(String societyId) => _fallbackMock.getTotalTowers(societyId);
+  int getTotalTowers(String societyId) => _client == null ? _fallbackMock.getTotalTowers(societyId) : 0;
 
   @override
-  int getTotalFloors(String societyId) => _fallbackMock.getTotalFloors(societyId);
+  int getTotalFloors(String societyId) => _client == null ? _fallbackMock.getTotalFloors(societyId) : 0;
 
   @override
-  int getTotalFlats(String societyId) => _fallbackMock.getTotalFlats(societyId);
+  int getTotalFlats(String societyId) => _client == null ? _fallbackMock.getTotalFlats(societyId) : 0;
 
   @override
-  int getOccupiedFlats(String societyId) => _fallbackMock.getOccupiedFlats(societyId);
+  int getOccupiedFlats(String societyId) => _client == null ? _fallbackMock.getOccupiedFlats(societyId) : 0;
 
   @override
-  int getVacantFlats(String societyId) => _fallbackMock.getVacantFlats(societyId);
+  int getVacantFlats(String societyId) => _client == null ? _fallbackMock.getVacantFlats(societyId) : 0;
 
   @override
-  int getUnderMaintenanceFlats(String societyId) => _fallbackMock.getUnderMaintenanceFlats(societyId);
+  int getUnderMaintenanceFlats(String societyId) => _client == null ? _fallbackMock.getUnderMaintenanceFlats(societyId) : 0;
 }

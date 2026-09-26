@@ -9,14 +9,29 @@ import '../../../core/widgets/society_logo_widget.dart';
 import '../../../core/widgets/state_views.dart';
 import '../../../core/widgets/status_badge.dart';
 import '../../authentication/presentation/auth_notifier.dart';
+import '../../society/presentation/active_society_provider.dart';
 import '../../society/presentation/society_profile_notifier.dart';
 import 'dashboard_notifier.dart';
 
-class DashboardScreen extends ConsumerWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final activeSociety = ref.read(activeSocietyProvider).activeSociety;
+      ref.read(dashboardNotifierProvider.notifier).loadStats(activeSociety?.id);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final dashboardState = ref.watch(dashboardNotifierProvider);
     final society = ref.watch(societyProfileNotifierProvider).society;
     final authState = ref.watch(authNotifierProvider);
