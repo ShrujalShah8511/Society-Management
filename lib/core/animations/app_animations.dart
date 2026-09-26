@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 
@@ -175,55 +174,6 @@ class _HoverLiftCardState extends State<HoverLiftCard> {
                     ],
             ),
             child: widget.child,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Frosted Glass container with backdrop blur and hairline gradient border.
-class GlassCard extends StatelessWidget {
-  final Widget child;
-  final EdgeInsetsGeometry? padding;
-  final EdgeInsetsGeometry? margin;
-  final BorderRadius? borderRadius;
-  final double blurSigma;
-  final Color? backgroundColor;
-
-  const GlassCard({
-    super.key,
-    required this.child,
-    this.padding,
-    this.margin,
-    this.borderRadius,
-    this.blurSigma = 14,
-    this.backgroundColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final r = borderRadius ?? BorderRadius.circular(20);
-    final bg = backgroundColor ?? (isDark ? AppColors.glassFillDark : AppColors.glassFillLight);
-
-    return Container(
-      margin: margin,
-      child: ClipRRect(
-        borderRadius: r,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
-          child: Container(
-            padding: padding,
-            decoration: BoxDecoration(
-              color: bg,
-              borderRadius: r,
-              border: Border.all(
-                color: isDark ? AppColors.glassBorderDark : AppColors.glassBorderLight,
-                width: 1.2,
-              ),
-            ),
-            child: child,
           ),
         ),
       ),

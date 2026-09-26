@@ -9,7 +9,6 @@ class RouteConstants {
   // Authenticated Shell routes
   static const String dashboardPath = '/dashboard';
   static const String societiesPath = '/societies';
-  static const String societyPath = '/society';
   static const String societyProfilePath = '/society';
   static const String towersPath = '/society/towers';
   static const String floorsPath = '/society/floors';
@@ -22,7 +21,6 @@ class RouteConstants {
   static const String loginName = 'login';
   static const String forgotPasswordName = 'forgot-password';
   static const String dashboardName = 'dashboard';
-  static const String societyName = 'society';
   static const String societyProfileName = 'society';
   static const String towersName = 'towers';
   static const String floorsName = 'floors';

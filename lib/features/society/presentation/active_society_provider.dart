@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/providers.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/services/push_notification_service.dart';
 import '../../../core/utils/browser_branding_service.dart';
 import '../domain/society.dart';
 import '../domain/society_repository.dart';
@@ -84,6 +86,7 @@ class ActiveSocietyNotifier extends StateNotifier<ActiveSocietyState> {
         isLoading: false,
       );
       _syncBranding(currentActive);
+      unawaited(PushNotificationService.instance.subscribeToSociety(currentActive.id));
     } catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
     }
@@ -96,6 +99,7 @@ class ActiveSocietyNotifier extends StateNotifier<ActiveSocietyState> {
     );
     state = state.copyWith(activeSociety: matched);
     _syncBranding(matched);
+    unawaited(PushNotificationService.instance.subscribeToSociety(matched.id));
   }
 
   Future<Society?> createSociety(Society society) async {

@@ -2,12 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import '../config/app_config.dart';
-
-/// Top-level background message handler for Firebase Cloud Messaging
-@pragma('vm:entry-point')
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  debugPrint('[PushNotificationService] Background message received: ${message.messageId}');
-}
+import 'firebase_background_handler.dart';
 
 /// Production Push Notification Service backed by Firebase Cloud Messaging
 class PushNotificationService {
@@ -42,7 +37,7 @@ class PushNotificationService {
       }
 
       _messaging = FirebaseMessaging.instance;
-      FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
       // Request notification permissions
       final settings = await _messaging?.requestPermission(

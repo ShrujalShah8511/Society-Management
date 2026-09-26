@@ -7,11 +7,4 @@ class AppConstants {
 
   // Default Tenant/Society identifier for Phase 1
   static const String defaultSocietyId = 'soc-palm-heights-001';
-
-  // Timeouts & Networking
-  static const Duration connectTimeout = Duration(seconds: 15);
-  static const Duration receiveTimeout = Duration(seconds: 15);
-
-  // Pagination & Lists
-  static const int defaultPageSize = 20;
 }

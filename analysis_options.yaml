@@ -17,3 +17,4 @@ linter:
     avoid_empty_else: true
     prefer_final_fields: true
     unawaited_futures: true
+    avoid_unused_constructor_parameters: true
