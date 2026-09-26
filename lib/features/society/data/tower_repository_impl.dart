@@ -1,9 +1,9 @@
 import '../domain/tower.dart';
 import '../domain/tower_repository.dart';
-import 'society_mock_data_source.dart';
+import 'society_data_source.dart';
 
 class TowerRepositoryImpl implements TowerRepository {
-  final SocietyMockDataSource _dataSource;
+  final SocietyDataSource _dataSource;
 
   TowerRepositoryImpl(this._dataSource);
 

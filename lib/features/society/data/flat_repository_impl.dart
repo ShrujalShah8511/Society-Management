@@ -1,9 +1,9 @@
 import '../domain/flat.dart';
 import '../domain/flat_repository.dart';
-import 'society_mock_data_source.dart';
+import 'society_data_source.dart';
 
 class FlatRepositoryImpl implements FlatRepository {
-  final SocietyMockDataSource _dataSource;
+  final SocietyDataSource _dataSource;
 
   FlatRepositoryImpl(this._dataSource);
 

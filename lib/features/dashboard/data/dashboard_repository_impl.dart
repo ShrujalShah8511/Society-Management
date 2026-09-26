@@ -1,9 +1,9 @@
-import '../../society/data/society_mock_data_source.dart';
+import '../../society/data/society_data_source.dart';
 import '../domain/dashboard_repository.dart';
 import '../domain/dashboard_stats.dart';
 
 class DashboardRepositoryImpl implements DashboardRepository {
-  final SocietyMockDataSource _societyDataSource;
+  final SocietyDataSource _societyDataSource;
 
   DashboardRepositoryImpl(this._societyDataSource);
 

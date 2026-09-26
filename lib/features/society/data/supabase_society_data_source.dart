@@ -5,12 +5,24 @@ import '../domain/flat.dart';
 import '../domain/floor.dart';
 import '../domain/society.dart';
 import '../domain/tower.dart';
+import 'society_data_source.dart';
 import 'society_mock_data_source.dart';
 
 /// Supabase PostgreSQL Data Source for Society, Towers, Floors, and Flats
 /// Automatically falls back to in-memory MockDataSource when Supabase is unconfigured or in test mode.
-class SupabaseSocietyDataSource {
+class SupabaseSocietyDataSource implements SocietyDataSource {
   final SocietyMockDataSource _fallbackMock = SocietyMockDataSource();
+
+  static final RegExp _uuidRegex = RegExp(
+    r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+  );
+
+  String _normalizeSocietyId(String societyId) {
+    if (!_uuidRegex.hasMatch(societyId)) {
+      return '0bb542a1-9954-4bc7-a4d8-cf1821341681';
+    }
+    return societyId;
+  }
 
   sb.SupabaseClient? get _client => SupabaseClientManager.client;
 
@@ -18,6 +30,7 @@ class SupabaseSocietyDataSource {
   // SOCIETIES
   // ===========================================================================
 
+  @override
   Future<List<Society>> getSocieties() async {
     final client = _client;
     if (client == null) return _fallbackMock.getSocieties();
@@ -31,6 +44,7 @@ class SupabaseSocietyDataSource {
     }
   }
 
+  @override
   Future<Society> getSocietyProfile(String societyId) async {
     final client = _client;
     if (client == null) return _fallbackMock.getSocietyProfile(societyId);
@@ -44,6 +58,7 @@ class SupabaseSocietyDataSource {
     }
   }
 
+  @override
   Future<Society> createSociety(Society society) async {
     final client = _client;
     if (client == null) return _fallbackMock.createSociety(society);
@@ -62,6 +77,7 @@ class SupabaseSocietyDataSource {
     }
   }
 
+  @override
   Future<Society> updateSocietyProfile(Society society) async {
     final client = _client;
     if (client == null) return _fallbackMock.updateSocietyProfile(society);
@@ -80,6 +96,7 @@ class SupabaseSocietyDataSource {
     }
   }
 
+  @override
   Future<void> deleteSociety(String societyId) async {
     final client = _client;
     if (client == null) return _fallbackMock.deleteSociety(societyId);
@@ -96,12 +113,14 @@ class SupabaseSocietyDataSource {
   // TOWERS
   // ===========================================================================
 
+  @override
   Future<List<Tower>> getTowers(String societyId) async {
     final client = _client;
     if (client == null) return _fallbackMock.getTowers(societyId);
 
     try {
-      final data = await client.from('towers').select().eq('society_id', societyId).order('name');
+      final normSocietyId = _normalizeSocietyId(societyId);
+      final data = await client.from('towers').select().eq('society_id', normSocietyId).order('name');
       return (data as List).map((row) => _mapRowToTower(row as Map<String, dynamic>)).toList();
     } catch (e) {
       debugPrint('[SupabaseSocietyDataSource] getTowers error: $e. Falling back to mock.');
@@ -109,6 +128,7 @@ class SupabaseSocietyDataSource {
     }
   }
 
+  @override
   Future<Tower> getTowerById(String id) async {
     final client = _client;
     if (client == null) return _fallbackMock.getTowerById(id);
@@ -121,6 +141,7 @@ class SupabaseSocietyDataSource {
     }
   }
 
+  @override
   Future<Tower> createTower(Tower tower) async {
     final client = _client;
     if (client == null) return _fallbackMock.createTower(tower);
@@ -139,6 +160,7 @@ class SupabaseSocietyDataSource {
     }
   }
 
+  @override
   Future<Tower> updateTower(Tower tower) async {
     final client = _client;
     if (client == null) return _fallbackMock.updateTower(tower);
@@ -155,6 +177,7 @@ class SupabaseSocietyDataSource {
     }
   }
 
+  @override
   Future<void> deleteTower(String id) async {
     final client = _client;
     if (client == null) return _fallbackMock.deleteTower(id);
@@ -170,6 +193,7 @@ class SupabaseSocietyDataSource {
   // FLOORS
   // ===========================================================================
 
+  @override
   Future<List<Floor>> getFloors({required String societyId, required String towerId}) async {
     final client = _client;
     if (client == null) return _fallbackMock.getFloors(societyId: societyId, towerId: towerId);
@@ -182,6 +206,7 @@ class SupabaseSocietyDataSource {
     }
   }
 
+  @override
   Future<Floor> createFloor(Floor floor) async {
     final client = _client;
     if (client == null) return _fallbackMock.createFloor(floor);
@@ -199,6 +224,7 @@ class SupabaseSocietyDataSource {
     }
   }
 
+  @override
   Future<Floor> updateFloor(Floor floor) async {
     final client = _client;
     if (client == null) return _fallbackMock.updateFloor(floor);
@@ -214,6 +240,7 @@ class SupabaseSocietyDataSource {
     }
   }
 
+  @override
   Future<void> deleteFloor(String id) async {
     final client = _client;
     if (client == null) return _fallbackMock.deleteFloor(id);
@@ -229,6 +256,7 @@ class SupabaseSocietyDataSource {
   // FLATS
   // ===========================================================================
 
+  @override
   Future<List<Flat>> getFlats({
     required String societyId,
     String? towerId,
@@ -254,7 +282,8 @@ class SupabaseSocietyDataSource {
     }
 
     try {
-      var query = client.from('flats').select().eq('society_id', societyId);
+      final normSocietyId = _normalizeSocietyId(societyId);
+      var query = client.from('flats').select().eq('society_id', normSocietyId);
       if (towerId != null && towerId.isNotEmpty) {
         query = query.eq('tower_id', towerId);
       }
@@ -289,6 +318,7 @@ class SupabaseSocietyDataSource {
     }
   }
 
+  @override
   Future<Flat> getFlatById(String id) async {
     final client = _client;
     if (client == null) return _fallbackMock.getFlatById(id);
@@ -301,13 +331,15 @@ class SupabaseSocietyDataSource {
     }
   }
 
+  @override
   Future<Flat> createFlat(Flat flat) async {
     final client = _client;
     if (client == null) return _fallbackMock.createFlat(flat);
 
     try {
+      final normSocietyId = _normalizeSocietyId(flat.societyId);
       final row = await client.from('flats').insert({
-        'society_id': flat.societyId,
+        'society_id': normSocietyId,
         'tower_id': flat.towerId,
         'floor_id': flat.floorId,
         'flat_number': flat.flatNumber,
@@ -322,6 +354,7 @@ class SupabaseSocietyDataSource {
     }
   }
 
+  @override
   Future<Flat> updateFlat(Flat flat) async {
     final client = _client;
     if (client == null) return _fallbackMock.updateFlat(flat);
@@ -339,13 +372,16 @@ class SupabaseSocietyDataSource {
     }
   }
 
+  @override
   Future<void> deleteFlat(String id) async {
     final client = _client;
     if (client == null) return _fallbackMock.deleteFlat(id);
 
     try {
       await client.from('flats').delete().eq('id', id);
+      debugPrint('[SupabaseSocietyDataSource] Deleted flat $id from PostgreSQL.');
     } catch (e) {
+      debugPrint('[SupabaseSocietyDataSource] deleteFlat error: $e. Falling back to mock.');
       return _fallbackMock.deleteFlat(id);
     }
   }
@@ -409,4 +445,26 @@ class SupabaseSocietyDataSource {
       createdAt: DateTime.tryParse(row['created_at'] as String? ?? '') ?? DateTime.now(),
     );
   }
+
+  // ===========================================================================
+  // METRICS & STATS
+  // ===========================================================================
+
+  @override
+  int getTotalTowers(String societyId) => _fallbackMock.getTotalTowers(societyId);
+
+  @override
+  int getTotalFloors(String societyId) => _fallbackMock.getTotalFloors(societyId);
+
+  @override
+  int getTotalFlats(String societyId) => _fallbackMock.getTotalFlats(societyId);
+
+  @override
+  int getOccupiedFlats(String societyId) => _fallbackMock.getOccupiedFlats(societyId);
+
+  @override
+  int getVacantFlats(String societyId) => _fallbackMock.getVacantFlats(societyId);
+
+  @override
+  int getUnderMaintenanceFlats(String societyId) => _fallbackMock.getUnderMaintenanceFlats(societyId);
 }

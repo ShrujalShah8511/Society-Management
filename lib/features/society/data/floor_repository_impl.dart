@@ -1,9 +1,9 @@
 import '../domain/floor.dart';
 import '../domain/floor_repository.dart';
-import 'society_mock_data_source.dart';
+import 'society_data_source.dart';
 
 class FloorRepositoryImpl implements FloorRepository {
-  final SocietyMockDataSource _dataSource;
+  final SocietyDataSource _dataSource;
 
   FloorRepositoryImpl(this._dataSource);
 
