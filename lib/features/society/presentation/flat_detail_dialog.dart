@@ -10,12 +10,16 @@ class FlatDetailDialog extends StatelessWidget {
   final Flat flat;
   final Tower? tower;
   final Floor? floor;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   const FlatDetailDialog({
     super.key,
     required this.flat,
     this.tower,
     this.floor,
+    this.onEdit,
+    this.onDelete,
   });
 
   static void show(
@@ -23,6 +27,8 @@ class FlatDetailDialog extends StatelessWidget {
     required Flat flat,
     Tower? tower,
     Floor? floor,
+    VoidCallback? onEdit,
+    VoidCallback? onDelete,
   }) {
     showDialog(
       context: context,
@@ -30,6 +36,8 @@ class FlatDetailDialog extends StatelessWidget {
         flat: flat,
         tower: tower,
         floor: floor,
+        onEdit: onEdit,
+        onDelete: onDelete,
       ),
     );
   }
@@ -74,6 +82,26 @@ class FlatDetailDialog extends StatelessWidget {
         ),
       ),
       actions: [
+        if (onDelete != null)
+          AppButton(
+            text: 'Delete Flat',
+            variant: AppButtonVariant.danger,
+            icon: Icons.delete_outline,
+            onPressed: () {
+              Navigator.of(context).pop();
+              onDelete!();
+            },
+          ),
+        if (onEdit != null)
+          AppButton(
+            text: 'Edit',
+            variant: AppButtonVariant.secondary,
+            icon: Icons.edit_outlined,
+            onPressed: () {
+              Navigator.of(context).pop();
+              onEdit!();
+            },
+          ),
         AppButton(
           text: 'Close',
           variant: AppButtonVariant.outlined,

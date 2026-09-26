@@ -688,6 +688,34 @@ class _FlatListScreenState extends ConsumerState<FlatListScreen> {
           flat: flat,
           tower: tower,
           floor: floor,
+          onEdit: canManage
+              ? () async {
+                  final state = ref.read(flatNotifierProvider);
+                  final updated = await FlatFormDialog.show(
+                    context,
+                    flat: flat,
+                    towers: state.towers,
+                    floors: state.floors,
+                  );
+                  if (updated != null) {
+                    await ref.read(flatNotifierProvider.notifier).updateFlat(updated);
+                  }
+                }
+              : null,
+          onDelete: canManage
+              ? () async {
+                  final confirm = await ConfirmDialog.show(
+                    context: context,
+                    title: 'Delete Flat',
+                    message: 'Are you sure you want to delete flat ${flat.flatNumber}?',
+                    confirmLabel: 'Delete',
+                    isDestructive: true,
+                  );
+                  if (confirm) {
+                    await ref.read(flatNotifierProvider.notifier).deleteFlat(flat.id);
+                  }
+                }
+              : null,
         );
       },
       padding: const EdgeInsets.all(18),
@@ -783,46 +811,52 @@ class _FlatListScreenState extends ConsumerState<FlatListScreen> {
                 ],
               ),
               if (canManage)
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                      padding: const EdgeInsets.all(4),
-                      icon: const Icon(Icons.edit_outlined, size: 18),
-                      tooltip: 'Edit Flat',
-                      onPressed: () async {
-                        final state = ref.read(flatNotifierProvider);
-                        final updated = await FlatFormDialog.show(
-                          context,
-                          flat: flat,
-                          towers: state.towers,
-                          floors: state.floors,
-                        );
-                        if (updated != null) {
-                          await ref.read(flatNotifierProvider.notifier).updateFlat(updated);
-                        }
-                      },
-                    ),
-                    IconButton(
-                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                      padding: const EdgeInsets.all(4),
-                      icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.error),
-                      tooltip: 'Delete Flat',
-                      onPressed: () async {
-                        final confirm = await ConfirmDialog.show(
-                          context: context,
-                          title: 'Delete Flat',
-                          message: 'Are you sure you want to delete flat ${flat.flatNumber}?',
-                          confirmLabel: 'Delete',
-                          isDestructive: true,
-                        );
-                        if (confirm) {
-                          await ref.read(flatNotifierProvider.notifier).deleteFlat(flat.id);
-                        }
-                      },
-                    ),
-                  ],
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {},
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        key: Key('edit_flat_${flat.id}'),
+                        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                        padding: const EdgeInsets.all(4),
+                        icon: const Icon(Icons.edit_outlined, size: 18),
+                        tooltip: 'Edit Flat',
+                        onPressed: () async {
+                          final state = ref.read(flatNotifierProvider);
+                          final updated = await FlatFormDialog.show(
+                            context,
+                            flat: flat,
+                            towers: state.towers,
+                            floors: state.floors,
+                          );
+                          if (updated != null) {
+                            await ref.read(flatNotifierProvider.notifier).updateFlat(updated);
+                          }
+                        },
+                      ),
+                      IconButton(
+                        key: Key('delete_flat_${flat.id}'),
+                        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                        padding: const EdgeInsets.all(4),
+                        icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.error),
+                        tooltip: 'Delete Flat',
+                        onPressed: () async {
+                          final confirm = await ConfirmDialog.show(
+                            context: context,
+                            title: 'Delete Flat',
+                            message: 'Are you sure you want to delete flat ${flat.flatNumber}?',
+                            confirmLabel: 'Delete',
+                            isDestructive: true,
+                          );
+                          if (confirm) {
+                            await ref.read(flatNotifierProvider.notifier).deleteFlat(flat.id);
+                          }
+                        },
+                      ),
+                    ],
+                  ),
                 ),
             ],
           ),
