@@ -676,7 +676,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            'Phase 1 Operational • Cloud Sync Active',
+            'All Systems Operational',
             style: TextStyle(fontSize: 12, color: isDark ? AppColors.slate400 : AppColors.slate500),
           ),
         ],

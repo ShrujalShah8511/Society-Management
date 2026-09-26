@@ -163,7 +163,7 @@ class SettingsScreen extends ConsumerWidget {
                     ListTile(
                       leading: const Icon(Icons.info_outline),
                       title: const Text('About Application'),
-                      subtitle: const Text('Phase 1 Society Management Application'),
+                      subtitle: const Text('Society Management Application'),
                       trailing: const Text(
                         'v${AppConstants.appVersion}',
                         style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.slate500),
@@ -172,7 +172,7 @@ class SettingsScreen extends ConsumerWidget {
                         _showPlaceholderDialog(
                           context,
                           'About ${AppConstants.appName}',
-                          '${AppConstants.appName} is a scalable single-codebase Flutter application engineered for multi-platform management across Android, iOS, and Web.\n\nPhase 1 Scope covers:\n• Authentication & Session\n• Role & Permissions Architecture\n• Society Profile Management\n• Tower Management\n• Floor Management\n• Flat Management\n• Role-Aware Dashboard & Settings.',
+                          '${AppConstants.appName} is a scalable single-codebase Flutter application engineered for multi-platform management across Android, iOS, and Web.\n\nFeatures include:\n• Authentication & Session\n• Role & Permissions Architecture\n• Society Profile Management\n• Tower Management\n• Floor Management\n• Flat Management\n• Role-Aware Dashboard & Settings.',
                         );
                       },
                     ),
@@ -186,7 +186,7 @@ class SettingsScreen extends ConsumerWidget {
                         _showPlaceholderDialog(
                           context,
                           'Privacy Policy',
-                          'This application values your privacy. Phase 1 manages resident account data, society identifiers, and flat inventory securely in accordance with local regulations.\n\nAll credentials and session tokens are stored using secure encryption mechanisms.',
+                          'This application values your privacy. It manages resident account data, society identifiers, and flat inventory securely in accordance with local regulations.\n\nAll credentials and session tokens are stored using secure encryption mechanisms.',
                         );
                       },
                     ),
