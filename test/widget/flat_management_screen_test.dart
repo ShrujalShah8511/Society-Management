@@ -5,8 +5,9 @@ import 'package:society_management/app/providers.dart';
 import 'package:society_management/core/theme/app_theme.dart';
 import '../helpers/mock_society_data_source.dart';
 import 'package:society_management/features/society/presentation/flat_list_screen.dart';
-
 import 'package:society_management/features/society/presentation/flat_form_dialog.dart';
+import 'package:society_management/features/society/domain/tower.dart';
+import 'package:society_management/features/society/domain/floor.dart';
 
 void main() {
   testWidgets('FlatListScreen renders filters, search bar, and flat list',
@@ -42,9 +43,28 @@ void main() {
 
   testWidgets('FlatFormDialog renders inside AlertDialog without intrinsic dimension exceptions',
       (WidgetTester tester) async {
-    final mockDataSource = SocietyMockDataSource();
-    final towers = await mockDataSource.getTowers('soc_1');
-    final floors = await mockDataSource.getFloors(societyId: 'soc_1');
+    final List<Tower> towers = [
+      Tower(
+        id: 'tow-1',
+        societyId: 'soc-1',
+        name: 'Tower A',
+        description: 'Tower A description',
+        floorCount: 2,
+        status: TowerStatus.active,
+        createdAt: DateTime(2026, 1, 1),
+      ),
+    ];
+    final List<Floor> floors = [
+      Floor(
+        id: 'flr-1',
+        societyId: 'soc-1',
+        towerId: 'tow-1',
+        floorNumber: 1,
+        displayName: 'Floor 1',
+        status: TowerStatus.active,
+        createdAt: DateTime(2026, 1, 1),
+      ),
+    ];
 
     await tester.pumpWidget(
       MaterialApp(
@@ -72,6 +92,7 @@ void main() {
     expect(find.text('Add New Flat'), findsOneWidget);
     expect(find.byKey(const Key('flat_number_field')), findsOneWidget);
     expect(find.byKey(const Key('flat_area_field')), findsOneWidget);
-    expect(find.text('Save Flat'), findsOneWidget);
+    expect(find.byKey(const Key('flat_submit_button')), findsOneWidget);
+    expect(find.text('Create Flat'), findsOneWidget);
   });
 }
