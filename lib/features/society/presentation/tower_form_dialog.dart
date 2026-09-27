@@ -59,9 +59,9 @@ class _TowerFormDialogState extends State<TowerFormDialog> {
     _nameController = TextEditingController(text: widget.tower?.name ?? '');
     _descController = TextEditingController(text: widget.tower?.displayDescription ?? '');
     _floorsController = TextEditingController(
-        text: isEditing ? widget.tower!.floorCount.toString() : '5');
+        text: isEditing ? widget.tower!.floorCount.toString() : '');
     _flatsPerFloorController = TextEditingController(
-        text: isEditing ? widget.tower!.flatsPerFloor.toString() : '3');
+        text: isEditing ? widget.tower!.flatsPerFloor.toString() : '');
     _flatPrefixController = TextEditingController();
     _areaController = TextEditingController();
     _status = widget.tower?.status ?? TowerStatus.active;
