@@ -11,6 +11,7 @@ class Society {
   final String email;
   final String registrationNumber;
   final String? website;
+  final DateTime? createdAt;
   final DateTime updatedAt;
 
   const Society({
@@ -26,6 +27,7 @@ class Society {
     required this.email,
     required this.registrationNumber,
     this.website,
+    this.createdAt,
     required this.updatedAt,
   });
 
@@ -42,6 +44,7 @@ class Society {
     String? email,
     String? registrationNumber,
     String? website,
+    DateTime? createdAt,
     DateTime? updatedAt,
   }) {
     return Society(
@@ -57,6 +60,7 @@ class Society {
       email: email ?? this.email,
       registrationNumber: registrationNumber ?? this.registrationNumber,
       website: website ?? this.website,
+      createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
@@ -75,6 +79,7 @@ class Society {
       'email': email,
       'registrationNumber': registrationNumber,
       'website': website,
+      'createdAt': (createdAt ?? updatedAt).toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };
   }
@@ -93,6 +98,11 @@ class Society {
       email: map['email'] as String,
       registrationNumber: map['registrationNumber'] as String,
       website: map['website'] as String?,
+      createdAt: map['createdAt'] != null
+          ? DateTime.parse(map['createdAt'] as String)
+          : (map['created_at'] != null
+              ? DateTime.parse(map['created_at'] as String)
+              : null),
       updatedAt: map['updatedAt'] != null
           ? DateTime.parse(map['updatedAt'] as String)
           : DateTime.now(),

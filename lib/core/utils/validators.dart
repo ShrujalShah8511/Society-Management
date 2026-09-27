@@ -54,6 +54,39 @@ class Validators {
     return null;
   }
 
+  static String? optionalEmail(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return null;
+    }
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailRegex.hasMatch(value.trim())) {
+      return 'Enter a valid email address';
+    }
+    return null;
+  }
+
+  static String? optionalPhone(String? value, [String fieldName = 'Contact number']) {
+    if (value == null || value.trim().isEmpty) {
+      return null;
+    }
+    final phoneRegex = RegExp(r'^\+?[0-9]{10,13}$');
+    if (!phoneRegex.hasMatch(value.trim())) {
+      return 'Enter a valid phone number (10-13 digits)';
+    }
+    return null;
+  }
+
+  static String? optionalPinCode(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return null;
+    }
+    final pinRegex = RegExp(r'^[0-9]{5,6}$');
+    if (!pinRegex.hasMatch(value.trim())) {
+      return 'Enter a valid 5-6 digit PIN code';
+    }
+    return null;
+  }
+
   static String? pinCode(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'PIN code is required';
@@ -79,6 +112,17 @@ class Validators {
   static String? positiveDouble(String? value, [String fieldName = 'Area']) {
     if (value == null || value.trim().isEmpty) {
       return '$fieldName is required';
+    }
+    final parsed = double.tryParse(value.trim());
+    if (parsed == null || parsed <= 0) {
+      return '$fieldName must be greater than 0';
+    }
+    return null;
+  }
+
+  static String? optionalPositiveDouble(String? value, [String fieldName = 'Area']) {
+    if (value == null || value.trim().isEmpty) {
+      return null;
     }
     final parsed = double.tryParse(value.trim());
     if (parsed == null || parsed <= 0) {

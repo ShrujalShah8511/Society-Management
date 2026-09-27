@@ -25,14 +25,9 @@ class DashboardRepositoryImpl implements DashboardRepository {
         if (f.occupancyStatus == OccupancyStatus.underMaintenance) underMaintenance++;
       }
 
-      int totalFloors = floors.length;
-      if (totalFloors == 0 && towers.isNotEmpty) {
-        totalFloors = towers.fold<int>(0, (sum, t) => sum + t.floorCount);
-      }
-
       return DashboardStats(
         totalTowers: towers.length,
-        totalFloors: totalFloors,
+        totalFloors: floors.length,
         totalFlats: flats.length,
         occupiedFlats: occupied,
         vacantFlats: vacant,

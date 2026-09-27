@@ -4,7 +4,7 @@ import '../domain/society.dart';
 import '../domain/tower.dart';
 
 /// Unified abstract Data Source for Society, Towers, Floors, and Flats.
-/// Implemented by both [SupabaseSocietyDataSource] (production) and [SocietyMockDataSource] (offline/tests).
+/// Implemented by [SupabaseSocietyDataSource] in production.
 abstract class SocietyDataSource {
   // Societies
   Future<List<Society>> getSocieties();
@@ -23,6 +23,7 @@ abstract class SocietyDataSource {
   // Floors
   Future<List<Floor>> getFloors({required String societyId, String? towerId});
   Future<Floor> createFloor(Floor floor);
+  Future<List<Floor>> createFloors(List<Floor> floors);
   Future<Floor> updateFloor(Floor floor);
   Future<void> deleteFloor(String id);
 
@@ -39,6 +40,7 @@ abstract class SocietyDataSource {
   });
   Future<Flat> getFlatById(String id);
   Future<Flat> createFlat(Flat flat);
+  Future<List<Flat>> createFlats(List<Flat> flats);
   Future<Flat> updateFlat(Flat flat);
   Future<void> deleteFlat(String id);
 

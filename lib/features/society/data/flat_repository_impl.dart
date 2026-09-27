@@ -41,6 +41,11 @@ class FlatRepositoryImpl implements FlatRepository {
   }
 
   @override
+  Future<List<Flat>> createFlats(List<Flat> flats) {
+    return _dataSource.createFlats(flats);
+  }
+
+  @override
   Future<Flat> updateFlat(Flat flat) {
     return _dataSource.updateFlat(flat);
   }

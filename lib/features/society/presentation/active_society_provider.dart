@@ -64,6 +64,7 @@ class ActiveSocietyNotifier extends StateNotifier<ActiveSocietyState> {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
       final list = await _repository.getSocieties();
+      list.sort((a, b) => (a.createdAt ?? a.updatedAt).compareTo(b.createdAt ?? b.updatedAt));
       Society? currentActive;
 
       if (preferredActiveId != null) {

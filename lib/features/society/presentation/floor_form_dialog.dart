@@ -8,14 +8,29 @@ import '../domain/tower.dart';
 class FloorFormDialog extends StatefulWidget {
   final Floor? floor;
   final String towerName;
+  final int? suggestedFloorNumber;
 
-  const FloorFormDialog({super.key, this.floor, required this.towerName});
+  const FloorFormDialog({
+    super.key,
+    this.floor,
+    required this.towerName,
+    this.suggestedFloorNumber,
+  });
 
-  static Future<Floor?> show(BuildContext context, {Floor? floor, required String towerName}) {
+  static Future<Floor?> show(
+    BuildContext context, {
+    Floor? floor,
+    required String towerName,
+    int? suggestedFloorNumber,
+  }) {
     return showDialog<Floor>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => FloorFormDialog(floor: floor, towerName: towerName),
+      builder: (context) => FloorFormDialog(
+        floor: floor,
+        towerName: towerName,
+        suggestedFloorNumber: suggestedFloorNumber,
+      ),
     );
   }
 
@@ -32,9 +47,14 @@ class _FloorFormDialogState extends State<FloorFormDialog> {
   @override
   void initState() {
     super.initState();
-    _numberController = TextEditingController(
-        text: widget.floor != null ? widget.floor!.floorNumber.toString() : '');
-    _nameController = TextEditingController(text: widget.floor?.displayName ?? '');
+    final defaultNum = widget.floor != null
+        ? widget.floor!.floorNumber.toString()
+        : (widget.suggestedFloorNumber != null ? widget.suggestedFloorNumber.toString() : '');
+    final defaultName = widget.floor?.displayName ??
+        (widget.suggestedFloorNumber != null ? 'Floor ${widget.suggestedFloorNumber}' : '');
+
+    _numberController = TextEditingController(text: defaultNum);
+    _nameController = TextEditingController(text: defaultName);
     _status = widget.floor?.status ?? TowerStatus.active;
   }
 

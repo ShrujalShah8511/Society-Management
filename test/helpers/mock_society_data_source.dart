@@ -1,10 +1,10 @@
-import '../../../core/constants/app_constants.dart';
-import '../../../core/errors/app_errors.dart';
-import '../domain/flat.dart';
-import '../domain/floor.dart';
-import '../domain/society.dart';
-import '../domain/tower.dart';
-import 'society_data_source.dart';
+import 'package:society_management/core/constants/app_constants.dart';
+import 'package:society_management/core/errors/app_errors.dart';
+import 'package:society_management/features/society/data/society_data_source.dart';
+import 'package:society_management/features/society/domain/flat.dart';
+import 'package:society_management/features/society/domain/floor.dart';
+import 'package:society_management/features/society/domain/society.dart';
+import 'package:society_management/features/society/domain/tower.dart';
 
 class SocietyMockDataSource implements SocietyDataSource {
   final Map<String, Society> _societies = {};
@@ -31,6 +31,7 @@ class SocietyMockDataSource implements SocietyDataSource {
       email: 'contact@shyamheights.in',
       registrationNumber: 'PR/GJ/GANDHINAGAR/GANDHINAGAR/OTHERS/MAA10020/130422',
       website: 'https://shyamheights.in',
+      createdAt: DateTime.now().subtract(const Duration(days: 60)),
       updatedAt: DateTime.now().subtract(const Duration(days: 30)),
     );
 
@@ -48,6 +49,7 @@ class SocietyMockDataSource implements SocietyDataSource {
       email: 'admin@palmoasis.in',
       registrationNumber: 'GUJ/AHM/2022/3041',
       website: 'https://palmoasis.in',
+      createdAt: DateTime.now().subtract(const Duration(days: 45)),
       updatedAt: DateTime.now().subtract(const Duration(days: 45)),
     );
 
@@ -282,7 +284,7 @@ class SocietyMockDataSource implements SocietyDataSource {
   Future<List<Society>> getSocieties() async {
     await Future.delayed(const Duration(milliseconds: 150));
     return _societies.values.toList()
-      ..sort((a, b) => a.name.compareTo(b.name));
+      ..sort((a, b) => (a.createdAt ?? a.updatedAt).compareTo(b.createdAt ?? b.updatedAt));
   }
 
   @override
@@ -296,8 +298,11 @@ class SocietyMockDataSource implements SocietyDataSource {
   @override
   Future<Society> createSociety(Society society) async {
     await Future.delayed(const Duration(milliseconds: 250));
-    _societies[society.id] = society;
-    return society;
+    final withCreated = society.createdAt != null
+        ? society
+        : society.copyWith(createdAt: DateTime.now());
+    _societies[withCreated.id] = withCreated;
+    return withCreated;
   }
 
   @override
@@ -321,7 +326,7 @@ class SocietyMockDataSource implements SocietyDataSource {
   Future<List<Tower>> getTowers(String societyId) async {
     await Future.delayed(const Duration(milliseconds: 200));
     return _towers.values.where((t) => t.societyId == societyId).toList()
-      ..sort((a, b) => a.name.compareTo(b.name));
+      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
   }
 
   @override
@@ -368,14 +373,27 @@ class SocietyMockDataSource implements SocietyDataSource {
             (f.societyId == sId || f.societyId.isEmpty) &&
             (towerId == null || towerId.isEmpty || f.towerId == towerId))
         .toList()
-      ..sort((a, b) => a.floorNumber.compareTo(b.floorNumber));
+      ..sort((a, b) {
+        final cmp = a.floorNumber.compareTo(b.floorNumber);
+        if (cmp != 0) return cmp;
+        return a.createdAt.compareTo(b.createdAt);
+      });
   }
 
   @override
   Future<Floor> createFloor(Floor floor) async {
-    await Future.delayed(const Duration(milliseconds: 250));
+    await Future.delayed(const Duration(milliseconds: 50));
     _floors[floor.id] = floor;
     return floor;
+  }
+
+  @override
+  Future<List<Floor>> createFloors(List<Floor> floors) async {
+    await Future.delayed(const Duration(milliseconds: 50));
+    for (final f in floors) {
+      _floors[f.id] = f;
+    }
+    return floors;
   }
 
   @override
@@ -410,7 +428,10 @@ class SocietyMockDataSource implements SocietyDataSource {
     bool ascending = true,
   }) async {
     await Future.delayed(const Duration(milliseconds: 200));
-    var results = _flats.values.where((f) => f.societyId == societyId).toList();
+    final sId = societyId.isEmpty ? AppConstants.defaultSocietyId : societyId;
+    var results = _flats.values
+        .where((f) => f.societyId == sId || (sId == AppConstants.defaultSocietyId && f.societyId.isEmpty))
+        .toList();
 
     if (towerId != null && towerId.isNotEmpty) {
       results = results.where((f) => f.towerId == towerId).toList();
@@ -434,14 +455,18 @@ class SocietyMockDataSource implements SocietyDataSource {
         results.sort((a, b) => ascending
             ? a.areaSqFt.compareTo(b.areaSqFt)
             : b.areaSqFt.compareTo(a.areaSqFt));
-      } else {
-        // default sort by flatNumber
+      } else if (sortBy == 'number') {
         results.sort((a, b) => ascending
             ? a.flatNumber.compareTo(b.flatNumber)
             : b.flatNumber.compareTo(a.flatNumber));
+      } else {
+        // default or 'created'
+        results.sort((a, b) => ascending
+            ? a.createdAt.compareTo(b.createdAt)
+            : b.createdAt.compareTo(a.createdAt));
       }
     } else {
-      results.sort((a, b) => a.flatNumber.compareTo(b.flatNumber));
+      results.sort((a, b) => a.createdAt.compareTo(b.createdAt));
     }
 
     return results;
@@ -463,6 +488,15 @@ class SocietyMockDataSource implements SocietyDataSource {
   }
 
   @override
+  Future<List<Flat>> createFlats(List<Flat> flats) async {
+    await Future.delayed(const Duration(milliseconds: 250));
+    for (final flat in flats) {
+      _flats[flat.id] = flat;
+    }
+    return flats;
+  }
+
+  @override
   Future<Flat> updateFlat(Flat flat) async {
     await Future.delayed(const Duration(milliseconds: 250));
     if (!_flats.containsKey(flat.id)) throw const NotFoundFailure('Flat not found');
@@ -479,38 +513,38 @@ class SocietyMockDataSource implements SocietyDataSource {
   // --- Statistics helper for Dashboard (Tenant Isolated) ---
   @override
   int getTotalTowers([String? societyId]) {
-    final sId = societyId ?? AppConstants.defaultSocietyId;
-    return _towers.values.where((t) => t.societyId == sId).length;
+    final sId = (societyId == null || societyId.isEmpty) ? AppConstants.defaultSocietyId : societyId;
+    return _towers.values.where((t) => t.societyId == sId || (sId == AppConstants.defaultSocietyId && t.societyId.isEmpty)).length;
   }
 
   @override
   int getTotalFloors([String? societyId]) {
-    final sId = societyId ?? AppConstants.defaultSocietyId;
-    return _floors.values.where((f) => f.societyId == sId).length;
+    final sId = (societyId == null || societyId.isEmpty) ? AppConstants.defaultSocietyId : societyId;
+    return _floors.values.where((f) => f.societyId == sId || (sId == AppConstants.defaultSocietyId && f.societyId.isEmpty)).length;
   }
 
   @override
   int getTotalFlats([String? societyId]) {
-    final sId = societyId ?? AppConstants.defaultSocietyId;
-    return _flats.values.where((f) => f.societyId == sId).length;
+    final sId = (societyId == null || societyId.isEmpty) ? AppConstants.defaultSocietyId : societyId;
+    return _flats.values.where((f) => f.societyId == sId || (sId == AppConstants.defaultSocietyId && f.societyId.isEmpty)).length;
   }
 
   @override
   int getOccupiedFlats([String? societyId]) {
-    final sId = societyId ?? AppConstants.defaultSocietyId;
-    return _flats.values.where((f) => f.societyId == sId && f.occupancyStatus == OccupancyStatus.occupied).length;
+    final sId = (societyId == null || societyId.isEmpty) ? AppConstants.defaultSocietyId : societyId;
+    return _flats.values.where((f) => (f.societyId == sId || (sId == AppConstants.defaultSocietyId && f.societyId.isEmpty)) && f.occupancyStatus == OccupancyStatus.occupied).length;
   }
 
   @override
   int getVacantFlats([String? societyId]) {
-    final sId = societyId ?? AppConstants.defaultSocietyId;
-    return _flats.values.where((f) => f.societyId == sId && f.occupancyStatus == OccupancyStatus.vacant).length;
+    final sId = (societyId == null || societyId.isEmpty) ? AppConstants.defaultSocietyId : societyId;
+    return _flats.values.where((f) => (f.societyId == sId || (sId == AppConstants.defaultSocietyId && f.societyId.isEmpty)) && f.occupancyStatus == OccupancyStatus.vacant).length;
   }
 
   @override
   int getUnderMaintenanceFlats([String? societyId]) {
-    final sId = societyId ?? AppConstants.defaultSocietyId;
-    return _flats.values.where((f) => f.societyId == sId && f.occupancyStatus == OccupancyStatus.underMaintenance).length;
+    final sId = (societyId == null || societyId.isEmpty) ? AppConstants.defaultSocietyId : societyId;
+    return _flats.values.where((f) => (f.societyId == sId || (sId == AppConstants.defaultSocietyId && f.societyId.isEmpty)) && f.occupancyStatus == OccupancyStatus.underMaintenance).length;
   }
 
   int get totalTowers => getTotalTowers();

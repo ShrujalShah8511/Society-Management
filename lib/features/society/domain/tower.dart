@@ -22,6 +22,7 @@ class Tower {
   final String name;
   final String description;
   final int floorCount;
+  final int flatsPerFloor;
   final TowerStatus status;
   final DateTime createdAt;
 
@@ -31,9 +32,22 @@ class Tower {
     required this.name,
     required this.description,
     required this.floorCount,
+    this.flatsPerFloor = 3,
     required this.status,
     required this.createdAt,
   });
+
+  static int extractFlatsPerFloor(String? desc) {
+    if (desc == null || desc.isEmpty) return 3;
+    final match = RegExp(r'\[flats_per_floor:\s*(\d+)\]').firstMatch(desc);
+    if (match != null) {
+      return int.tryParse(match.group(1) ?? '3') ?? 3;
+    }
+    return 3;
+  }
+
+  String get displayDescription =>
+      description.replaceAll(RegExp(r'\s*\[flats_per_floor:\s*\d+\]'), '').trim();
 
   Tower copyWith({
     String? id,
@@ -41,6 +55,7 @@ class Tower {
     String? name,
     String? description,
     int? floorCount,
+    int? flatsPerFloor,
     TowerStatus? status,
     DateTime? createdAt,
   }) {
@@ -50,30 +65,43 @@ class Tower {
       name: name ?? this.name,
       description: description ?? this.description,
       floorCount: floorCount ?? this.floorCount,
+      flatsPerFloor: flatsPerFloor ?? this.flatsPerFloor,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
     );
   }
 
   Map<String, dynamic> toMap() {
+    final cleanDesc = displayDescription;
+    final encodedDesc = cleanDesc.isEmpty
+        ? '[flats_per_floor:$flatsPerFloor]'
+        : '$cleanDesc [flats_per_floor:$flatsPerFloor]';
+
     return {
       'id': id,
       'societyId': societyId,
       'name': name,
-      'description': description,
+      'description': encodedDesc,
       'floorCount': floorCount,
+      'flatsPerFloor': flatsPerFloor,
       'status': status.code,
       'createdAt': createdAt.toIso8601String(),
     };
   }
 
   factory Tower.fromMap(Map<String, dynamic> map) {
+    final desc = map['description'] as String? ?? '';
+    final parsedFlats = map['flatsPerFloor'] is num
+        ? (map['flatsPerFloor'] as num).toInt()
+        : extractFlatsPerFloor(desc);
+
     return Tower(
       id: map['id'] as String,
       societyId: map['societyId'] as String,
       name: map['name'] as String,
-      description: map['description'] as String? ?? '',
+      description: desc,
       floorCount: (map['floorCount'] as num).toInt(),
+      flatsPerFloor: parsedFlats,
       status: TowerStatus.fromString(map['status'] as String?),
       createdAt: map['createdAt'] != null
           ? DateTime.parse(map['createdAt'] as String)

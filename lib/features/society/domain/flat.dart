@@ -56,7 +56,7 @@ class Flat {
     required this.floorId,
     required this.flatNumber,
     required this.flatType,
-    required this.areaSqFt,
+    this.areaSqFt = 0.0,
     required this.occupancyStatus,
     required this.createdAt,
   });
@@ -107,7 +107,7 @@ class Flat {
       floorId: map['floorId'] as String,
       flatNumber: map['flatNumber'] as String,
       flatType: FlatType.fromString(map['flatType'] as String?),
-      areaSqFt: (map['areaSqFt'] as num).toDouble(),
+      areaSqFt: (map['areaSqFt'] as num?)?.toDouble() ?? 0.0,
       occupancyStatus: OccupancyStatus.fromString(map['occupancyStatus'] as String?),
       createdAt: map['createdAt'] != null
           ? DateTime.parse(map['createdAt'] as String)

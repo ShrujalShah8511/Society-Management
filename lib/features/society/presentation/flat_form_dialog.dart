@@ -11,12 +11,14 @@ class FlatFormDialog extends StatefulWidget {
   final Flat? flat;
   final List<Tower> towers;
   final List<Floor> floors;
+  final VoidCallback? onSwitchToAutogenerate;
 
   const FlatFormDialog({
     super.key,
     this.flat,
     required this.towers,
     required this.floors,
+    this.onSwitchToAutogenerate,
   });
 
   static Future<Flat?> show(
@@ -24,6 +26,7 @@ class FlatFormDialog extends StatefulWidget {
     Flat? flat,
     required List<Tower> towers,
     required List<Floor> floors,
+    VoidCallback? onSwitchToAutogenerate,
   }) {
     return showDialog<Flat>(
       context: context,
@@ -32,6 +35,7 @@ class FlatFormDialog extends StatefulWidget {
         flat: flat,
         towers: towers,
         floors: floors,
+        onSwitchToAutogenerate: onSwitchToAutogenerate,
       ),
     );
   }
@@ -60,8 +64,12 @@ class _FlatFormDialogState extends State<FlatFormDialog> {
         (availableFloors.isNotEmpty ? availableFloors.first.id : null);
 
     _numberController = TextEditingController(text: widget.flat?.flatNumber ?? '');
-    _areaController = TextEditingController(
-        text: widget.flat != null ? widget.flat!.areaSqFt.toStringAsFixed(0) : '1000');
+    final initialArea = widget.flat != null && widget.flat!.areaSqFt > 0
+        ? (widget.flat!.areaSqFt % 1 == 0
+            ? widget.flat!.areaSqFt.toInt().toString()
+            : widget.flat!.areaSqFt.toString())
+        : '';
+    _areaController = TextEditingController(text: initialArea);
     _flatType = widget.flat?.flatType ?? FlatType.twoBhk;
     _occupancyStatus = widget.flat?.occupancyStatus ?? OccupancyStatus.vacant;
   }
@@ -87,7 +95,8 @@ class _FlatFormDialogState extends State<FlatFormDialog> {
       return;
     }
 
-    final area = double.tryParse(_areaController.text.trim()) ?? 1000.0;
+    final areaText = _areaController.text.trim();
+    final area = areaText.isNotEmpty ? (double.tryParse(areaText) ?? 0.0) : 0.0;
     if (widget.flat != null) {
       final updated = widget.flat!.copyWith(
         towerId: _selectedTowerId!,
@@ -119,10 +128,88 @@ class _FlatFormDialogState extends State<FlatFormDialog> {
     final isEditing = widget.flat != null;
     final availableFloors = _getFloorsForTower(_selectedTowerId);
 
+    final dialogWidth = (MediaQuery.sizeOf(context).width - 48).clamp(320.0, 480.0);
+    final isCompact = dialogWidth < 380;
+
+    final towerField = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Tower', style: Theme.of(context).textTheme.labelMedium),
+        const SizedBox(height: 6),
+        DropdownButtonFormField<String>(
+          value: _selectedTowerId,
+          decoration: const InputDecoration(
+            contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          ),
+          items: widget.towers.map((t) {
+            return DropdownMenuItem(value: t.id, child: Text(t.name));
+          }).toList(),
+          onChanged: (val) {
+            setState(() {
+              _selectedTowerId = val;
+              final newFloors = _getFloorsForTower(val);
+              _selectedFloorId = newFloors.isNotEmpty ? newFloors.first.id : null;
+            });
+          },
+        ),
+      ],
+    );
+
+    final floorField = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Floor', style: Theme.of(context).textTheme.labelMedium),
+        const SizedBox(height: 6),
+        DropdownButtonFormField<String>(
+          value: _selectedFloorId,
+          decoration: const InputDecoration(
+            contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          ),
+          items: availableFloors.map((f) {
+            return DropdownMenuItem(value: f.id, child: Text(f.displayName));
+          }).toList(),
+          onChanged: (val) {
+            setState(() {
+              _selectedFloorId = val;
+            });
+          },
+        ),
+      ],
+    );
+
+    final flatTypeField = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Flat Type', style: Theme.of(context).textTheme.labelMedium),
+        const SizedBox(height: 6),
+        DropdownButtonFormField<FlatType>(
+          value: _flatType,
+          decoration: const InputDecoration(
+            contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          ),
+          items: FlatType.values.map((t) {
+            return DropdownMenuItem(value: t, child: Text(t.displayName));
+          }).toList(),
+          onChanged: (val) {
+            if (val != null) setState(() => _flatType = val);
+          },
+        ),
+      ],
+    );
+
+    final areaField = AppTextField(
+      key: const Key('flat_area_field'),
+      controller: _areaController,
+      label: 'Area (sq. ft.) (Optional)',
+      hint: 'e.g. 1150',
+      keyboardType: TextInputType.number,
+      validator: (val) => Validators.optionalPositiveDouble(val, 'Area'),
+    );
+
     return AlertDialog(
       title: Text(isEditing ? 'Edit Flat' : 'Add New Flat'),
-      content: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 480),
+      content: SizedBox(
+        width: dialogWidth,
         child: SingleChildScrollView(
           child: Form(
             key: _formKey,
@@ -130,75 +217,68 @@ class _FlatFormDialogState extends State<FlatFormDialog> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                if (!isEditing && widget.onSwitchToAutogenerate != null) ...[
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.auto_awesome_rounded,
+                          size: 18,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Need to add multiple flats?',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          key: const Key('switch_to_autogen_button'),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            visualDensity: VisualDensity.compact,
+                          ),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            widget.onSwitchToAutogenerate?.call();
+                          },
+                          child: const Text(
+                            'Auto-Generate',
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 // Tower & Floor Pickers
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final isCompact = constraints.maxWidth < 380;
-                    final towerField = Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Tower', style: Theme.of(context).textTheme.labelMedium),
-                        const SizedBox(height: 6),
-                        DropdownButtonFormField<String>(
-                          value: _selectedTowerId,
-                          decoration: const InputDecoration(
-                            contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                          ),
-                          items: widget.towers.map((t) {
-                            return DropdownMenuItem(value: t.id, child: Text(t.name));
-                          }).toList(),
-                          onChanged: (val) {
-                            setState(() {
-                              _selectedTowerId = val;
-                              final newFloors = _getFloorsForTower(val);
-                              _selectedFloorId = newFloors.isNotEmpty ? newFloors.first.id : null;
-                            });
-                          },
-                        ),
-                      ],
-                    );
-
-                    final floorField = Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Floor', style: Theme.of(context).textTheme.labelMedium),
-                        const SizedBox(height: 6),
-                        DropdownButtonFormField<String>(
-                          value: _selectedFloorId,
-                          decoration: const InputDecoration(
-                            contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                          ),
-                          items: availableFloors.map((f) {
-                            return DropdownMenuItem(value: f.id, child: Text(f.displayName));
-                          }).toList(),
-                          onChanged: (val) {
-                            setState(() {
-                              _selectedFloorId = val;
-                            });
-                          },
-                        ),
-                      ],
-                    );
-
-                    if (isCompact) {
-                      return Column(
-                        children: [
-                          towerField,
-                          const SizedBox(height: 14),
-                          floorField,
-                        ],
-                      );
-                    }
-
-                    return Row(
-                      children: [
-                        Expanded(child: towerField),
-                        const SizedBox(width: 14),
-                        Expanded(child: floorField),
-                      ],
-                    );
-                  },
-                ),
+                if (isCompact) ...[
+                  towerField,
+                  const SizedBox(height: 14),
+                  floorField,
+                ] else
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(child: towerField),
+                      const SizedBox(width: 14),
+                      Expanded(child: floorField),
+                    ],
+                  ),
                 const SizedBox(height: 16),
 
                 // Flat Number
@@ -212,57 +292,19 @@ class _FlatFormDialogState extends State<FlatFormDialog> {
                 const SizedBox(height: 16),
 
                 // Flat Type & Area
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final isCompact = constraints.maxWidth < 380;
-                    final flatTypeField = Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Flat Type', style: Theme.of(context).textTheme.labelMedium),
-                        const SizedBox(height: 6),
-                        DropdownButtonFormField<FlatType>(
-                          value: _flatType,
-                          decoration: const InputDecoration(
-                            contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                          ),
-                          items: FlatType.values.map((t) {
-                            return DropdownMenuItem(value: t, child: Text(t.displayName));
-                          }).toList(),
-                          onChanged: (val) {
-                            if (val != null) setState(() => _flatType = val);
-                          },
-                        ),
-                      ],
-                    );
-
-                    final areaField = AppTextField(
-                      key: const Key('flat_area_field'),
-                      controller: _areaController,
-                      label: 'Area (sq. ft.)',
-                      hint: 'e.g. 1150',
-                      keyboardType: TextInputType.number,
-                      validator: (val) => Validators.positiveDouble(val, 'Area'),
-                    );
-
-                    if (isCompact) {
-                      return Column(
-                        children: [
-                          flatTypeField,
-                          const SizedBox(height: 14),
-                          areaField,
-                        ],
-                      );
-                    }
-
-                    return Row(
-                      children: [
-                        Expanded(child: flatTypeField),
-                        const SizedBox(width: 14),
-                        Expanded(child: areaField),
-                      ],
-                    );
-                  },
-                ),
+                if (isCompact) ...[
+                  flatTypeField,
+                  const SizedBox(height: 14),
+                  areaField,
+                ] else
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(child: flatTypeField),
+                      const SizedBox(width: 14),
+                      Expanded(child: areaField),
+                    ],
+                  ),
                 const SizedBox(height: 16),
 
                 // Occupancy Status

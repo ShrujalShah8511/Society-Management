@@ -171,12 +171,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                       children: [
                                         const PulsingStatusDot(color: AppColors.success, size: 6),
                                         const SizedBox(width: 6),
-                                        Text(
-                                          'Residential Management Platform',
+                                        Flexible(
+                                           child: Text(
+                                             'SaaS Platform',
                                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                                 color: AppColors.slate500,
                                                 fontWeight: FontWeight.w600,
-                                              ),
+                                                ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
                                         ),
                                       ],
                                     ),

@@ -1,88 +1,43 @@
 # MEMORY.md — Persistent Technical Memory (Phase 1)
 
-## 1. Current Project State
-
-* **Current Phase**: Phase 1
-* **Status**: In Development
-* **Target Platforms**: Android, iOS, Web
-
-### Phase 1 Scope Tracking
+## 1. Current State
+Phase 1 · In Development · Targets: Android, iOS, Web · Flutter v3.47.2 / Dart v3.13.2 (under `scratch/tools/`, on PATH) · Web: `http://localhost:8080`
 
 | Component | Status | Notes |
 |---|---|---|
-| Project Documentation & Memory | Completed | `AGENTS.md`, `MEMORY.md`, `SKILLS.md`, `ARCHITECTURE.md`, `CHANGELOG.md` |
-| Flutter Foundation & pubspec | Completed | Dependencies, M3 Light/Dark Themes, Responsive foundation |
-| Core Navigation & Routing | Completed | GoRouter, ShellRoute, Route guards, Responsive AppScaffold |
-| Authentication & Session | Completed | Splash, Login, Forgot Password, Secure Session storage |
-| Role Management | Completed | 6 Roles, Permissions matrix, RoleGuard helpers |
-| Society Profile | Completed | View/Edit Profile, Logo storage abstraction via FileStorageService |
-| Tower Management | Completed | CRUD, active/inactive status, relational delete protection |
-| Floor Management | Completed | Cascading CRUD under Tower parent, relational delete protection |
-| Flat Management | Completed | CRUD, Search, Multi-Facet Filters, Sort by number & area |
-| Dashboard | Completed | KPIs (Towers, Floors, Flats, Occupied, Vacant), Occupancy bar, Quick actions |
-| User Profile | Completed | Profile details, Edit name/phone, Change password, Sign out |
-| Settings | Completed | Theme mode (System/Light/Dark), About, Legal placeholders |
-| Verification & Testing | Completed | Unit tests, widget tests, integration flow tests (58 passing tests) |
-| Dynamic Society Branding | Completed | Optional logo upload (Web/Device/URL), reactive favicon/title sync, SocietyLogoWidget monogram fallbacks |
+| Docs & Memory | ✅ | AGENTS, MEMORY, SKILLS, ARCHITECTURE, CHANGELOG |
+| Flutter Foundation | ✅ | pubspec deps, M3 Light/Dark themes, responsive base |
+| Navigation/Routing | ✅ | GoRouter, ShellRoute, guards, responsive AppScaffold |
+| Auth & Session | ✅ | Splash, Login, Forgot Password, secure session storage |
+| Role Management | ✅ | 6 roles, permission matrix, RoleGuard |
+| Society Profile | ✅ | View/Edit, logo via FileStorageService |
+| Tower Mgmt | ✅ | CRUD, active/inactive, relational delete protection |
+| Floor Mgmt | ✅ | Cascading CRUD under Tower, relational delete protection |
+| Flat Mgmt | ✅ | CRUD, search, multi-filter, sort by number/area |
+| Dashboard | ✅ | KPIs (Towers/Floors/Flats/Occupied/Vacant), occupancy bar, quick actions |
+| User Profile | ✅ | Details, edit name/phone, change password, sign out |
+| Settings | ✅ | Theme (System/Light/Dark), About, legal placeholders |
+| Testing | ✅ | 58 unit/widget/integration tests passing |
+| Dynamic Branding | ✅ | Logo upload (Web/Device/URL), reactive favicon/title, monogram fallback |
 
-### Known Issues & Constraints
-* Environment contains MinGit & Flutter SDK (v3.47.2 / Dart v3.13.2) under `scratch/tools/` and configured in User `PATH`.
-* Phase 1 web server runs on `http://localhost:8080`.
-* Default seed society (Shyam Heights) logo initialized to `null`; dynamically customizable per society.
-
----
+**Seed society**: Shyam Heights · Near Sargasan Cross Road, Sargasan, Gandhinagar, GJ 382421 · RERA: `PR/GJ/GANDHINAGAR/GANDHINAGAR/OTHERS/MAA10020/130422` · contact@shyamheights.in · +91 9876543210 · logo = `null` (customizable).
 
 ## 2. Architecture Decisions
+| Date | Decision | Impact |
+|---|---|---|
+| 2026-09-26 | **15-Year Architect persona** | Enterprise standards enforced on all engineering. Documented in `.agents/skills/solution-architect/SKILL.md`, `SKILLS.md §0`, `AGENTS.md §0`. |
+| 2026-09-26 | **Cloudflare Pages + Supabase + Firebase** | Zero-cold-start CDN hosting; managed Postgres+Auth+Storage+RLS; FCM push + Analytics. Files: `web/_redirects`, `web/_headers`, `wrangler.toml`, `.github/workflows/deploy_cloudflare_pages.yml`, `supabase/migrations/`, `supabase/storage_setup.sql`, hybrid data layer (`SupabaseClientManager`, `SupabaseAuthDataSource`, `SupabaseSocietyDataSource`, `SupabaseFileStorageService`), `web/firebase-messaging-sw.js`. Runbook in `docs/cloud_architecture_and_deployment_guide.md`. |
+| 2026-09-09 | **Feature-First Clean Architecture** | `lib/features/<f>/{presentation,domain,data}` with repository abstractions. |
+| 2026-09-09 | **Riverpod state management** | Compile-time safety, no BuildContext for mocking, clean AsyncValue. |
+| 2026-09-09 | **GoRouter + responsive shell** | Web URL sync, deep linking, auth guards, desktop sidebar vs mobile nav. |
+| 2026-09-09 | **Mock & Remote dual data sources** | Presentation layer is data-source-agnostic. |
+| 2026-09-09 | **Strict Phase 1 scope** | Resident assignment, maintenance tickets, payment gateways excluded. |
 
-### Decision: 15-Year Solution Architect & Senior Developer Persona & Standards
-* **Reason**: Ensure all engineering, architecture decisions, code reviews, and refactorings adhere to senior enterprise standards, high cohesion, low coupling, defensive error handling, and production craftsmanship.
-* **Date**: 2026-09-26
-* **Impact**: Documented in `.agents/skills/solution-architect/SKILL.md`, `SKILLS.md` (Section 0), and `AGENTS.md` (Section 0) as an active operating guideline.
-
-### Decision: Cloudflare Pages, Supabase Backend & Firebase Cloud Services Architecture
-* **Reason**: Scalable, zero-cold-start hosting on Cloudflare Pages edge CDN, managed PostgreSQL + Auth + Storage with RLS multi-tenant security on Supabase, and enterprise Push Notifications + Analytics on Firebase.
-* **Date**: 2026-09-26
-* **Impact**: 
-  - Static SPA hosting configured via `web/_redirects`, `web/_headers`, `wrangler.toml`, and `.github/workflows/deploy_cloudflare_pages.yml`.
-  - Database schema, RLS policies, and triggers created in `supabase/migrations/20260926000000_init_schema.sql` and `supabase/storage_setup.sql`.
-  - Resilient hybrid data layer (`SupabaseClientManager`, `SupabaseAuthDataSource`, `SupabaseSocietyDataSource`, `SupabaseFileStorageService`) with seamless local mock fallback.
-  - FCM push notifications and Firebase Analytics implemented in `lib/core/services/` with web service worker `web/firebase-messaging-sw.js`.
-  - DNS/SSL runbook documented in `docs/cloud_architecture_and_deployment_guide.md`.
-
-### Decision: Feature-First Clean Architecture
-* **Reason**: Separates UI, state management, domain rules, and data sources cleanly, preventing tight coupling and enabling independent testing.
-* **Date**: 2026-09-09
-* **Impact**: All features are organized under `lib/features/<feature_name>/{presentation, domain, data}` with explicit repository abstractions.
-
-### Decision: State Management using Riverpod
-* **Reason**: Compile-time safety, effortless test mocking without `BuildContext`, clean asynchronous state handling (`AsyncValue`).
-* **Date**: 2026-09-09
-* **Impact**: UI widgets remain purely declarative; controllers/notifiers manage business logic.
-
-### Decision: Declarative Routing with GoRouter & Responsive Shell
-* **Reason**: Supports Web URL synchronization, deep linking, authentication route guards, and desktop sidebar vs mobile navigation scaffolding.
-* **Date**: 2026-09-09
-* **Impact**: Clean navigation transitions and role-aware access controls.
-
-### Decision: Repository Abstraction with Mock & Remote Data Sources
-* **Reason**: Allows immediate, rich in-memory CRUD operations for all Phase 1 features while maintaining full readiness for a REST API client.
-* **Date**: 2026-09-09
-* **Impact**: Presentation layer has zero awareness of data source origin.
-
-### Decision: Strictly Isolated Phase 1 Scope
-* **Reason**: Ensure stability, maintainability, and zero contamination from subsequent phases.
-* **Date**: 2026-09-09
-* **Impact**: Features like resident assignment, maintenance tickets, and payment gateways are excluded.
-
----
-
-## 3. Important Project Rules
-
-1. **Flutter is the single codebase** across Android, iOS, and Web.
-2. **Material 3 with centralized theming** must be used across all screens.
-3. **No hardcoded colors, padding, or styles** inside widgets; use theme tokens.
-4. **Role-based access control** is mandatory; both UI presentation and route guards enforce permissions.
-5. **Society data hierarchy** (`Society -> Tower -> Floor -> Flat`) must maintain relational integrity with `societyId`.
-6. **All data-driven screens** must explicitly handle 4 states: Loading, Empty, Error (with retry), and Success.
-7. **Security**: Never store plain-text passwords, tokens, API secrets, or private credentials in repository files or memory.
-8. **100% Mobile & Desktop UI Feature Parity**: Mobile screens (`_buildMobileScaffold`) must maintain full feature parity with the desktop layout. This includes the hamburger navigation drawer containing all categorized links (Overview, Infrastructure, Organization, Preferences), the active society switcher, user profile card with role badge, and full Sign Out / Logout capabilities with confirmation dialog.
+## 3. Project Rules
+1. Single Flutter codebase — Android · iOS · Web.
+2. Material 3 with centralized theming; no hardcoded colors/padding/styles.
+3. RBAC mandatory — enforced in UI and route guards.
+4. Society hierarchy `Society→Tower→Floor→Flat` maintains relational integrity via `societyId`.
+5. All data screens: 4 states — Loading · Empty · Error (retry) · Success.
+6. Security: never store plain-text passwords, tokens, API secrets in repo or memory.
+7. 100% Mobile/Desktop feature parity: hamburger drawer with all links (Overview, Infrastructure, Organization, Preferences), active society switcher, profile card + role badge, full Sign Out with confirmation dialog.

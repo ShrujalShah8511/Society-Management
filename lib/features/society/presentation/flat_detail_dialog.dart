@@ -71,7 +71,10 @@ class FlatDetailDialog extends StatelessWidget {
             const Divider(height: 20),
             _buildInfoRow('Flat Type', flat.flatType.displayName),
             const SizedBox(height: 12),
-            _buildInfoRow('Area', Formatters.formatArea(flat.areaSqFt)),
+            _buildInfoRow(
+              'Area',
+              flat.areaSqFt > 0 ? Formatters.formatArea(flat.areaSqFt) : 'Not specified',
+            ),
             const SizedBox(height: 12),
             _buildInfoRow('Tower', tower?.name ?? flat.towerId),
             const SizedBox(height: 12),

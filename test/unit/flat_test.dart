@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:society_management/core/constants/app_constants.dart';
 import 'package:society_management/features/society/data/flat_repository_impl.dart';
-import 'package:society_management/features/society/data/society_mock_data_source.dart';
+import '../helpers/mock_society_data_source.dart';
 import 'package:society_management/features/society/domain/flat.dart';
 
 void main() {

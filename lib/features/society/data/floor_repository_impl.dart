@@ -18,6 +18,11 @@ class FloorRepositoryImpl implements FloorRepository {
   }
 
   @override
+  Future<List<Floor>> createFloors(List<Floor> floors) {
+    return _dataSource.createFloors(floors);
+  }
+
+  @override
   Future<Floor> updateFloor(Floor floor) {
     return _dataSource.updateFloor(floor);
   }

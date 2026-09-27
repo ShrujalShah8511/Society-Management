@@ -15,7 +15,7 @@ class FlatFilterState {
   final FlatType? selectedFlatType;
   final OccupancyStatus? selectedOccupancyStatus;
   final String searchQuery;
-  final String sortBy; // 'number' or 'area'
+  final String sortBy; // 'created', 'number' or 'area'
   final bool ascending;
 
   const FlatFilterState({
@@ -24,7 +24,7 @@ class FlatFilterState {
     this.selectedFlatType,
     this.selectedOccupancyStatus,
     this.searchQuery = '',
-    this.sortBy = 'number',
+    this.sortBy = 'created',
     this.ascending = true,
   });
 
@@ -156,6 +156,20 @@ class FlatNotifier extends StateNotifier<FlatListState> {
     try {
       final flatWithSociety = flat.copyWith(societyId: _societyId);
       await _flatRepository.createFlat(flatWithSociety);
+      if (!mounted) return true;
+      await loadFlats();
+      return true;
+    } catch (e) {
+      if (!mounted) return false;
+      state = state.copyWith(errorMessage: e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> createFlats(List<Flat> flats) async {
+    try {
+      final flatsWithSociety = flats.map((f) => f.copyWith(societyId: _societyId)).toList();
+      await _flatRepository.createFlats(flatsWithSociety);
       if (!mounted) return true;
       await loadFlats();
       return true;

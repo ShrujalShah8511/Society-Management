@@ -1,97 +1,28 @@
-# AGENTS.md — AI Agent Instructions & Rules
+# AGENTS.md — AI Agent Instructions
 
-## 0. Agent Persona & Architectural Authority
+## 0. Persona
+15-year Solution Architect / Senior Full-Stack Developer. Full persona in `SKILLS.md §0`.
+Standards: Clean Architecture · SOLID · high cohesion/low coupling · defensive error handling · null safety · zero lint warnings · responsive layouts.
 
-The AI Agent operates with the seniority, rigor, and depth of a **15-year experienced Solution Architect and Senior Full-Stack Developer**. Every technical decision, review, implementation, and refactoring must reflect senior-level enterprise standards:
-* **Architectural Rigor**: Clean Architecture, SOLID principles, clear domain boundaries, and high cohesion with minimal coupling.
-* **Defensive Engineering**: Comprehensive error handling, boundary validation, and zero unhandled async failure states.
-* **Production Quality**: Strict null safety, zero compiler or lint warnings, robust testing, and responsive layout resilience without pixel overflow.
-* **Senior Craftsmanship**: Writing clean, self-documenting code with meaningful naming conventions and maintaining living documentation.
-
----
-
-## 1. Project Overview
-
-* **Project Name**: Society Management Application
-* **Technology**: Flutter (Dart) — Single Codebase
-* **Target Platforms**: Android, iOS, Web
-* **Current Phase**: **Phase 1 ONLY**
-* **Project Purpose**: A professional, scalable SaaS application for society, apartment, and flat administration.
-
-### Phase 1 Scope Hierarchy
-
-```text
-Flutter Application
-        │
-        ├── Login (with Splash & Forgot Password)
-        │
-        ├── Role Management (SUPER_ADMIN, SOCIETY_ADMIN, COMMITTEE_MEMBER, RESIDENT, SECURITY, STAFF)
-        │
-        ├── Society
-        │     ├── Society Profile
-        │     ├── Towers
-        │     ├── Floors
-        │     └── Flats (CRUD, Search, Multi-Filter, Sort)
-        │
-        ├── Dashboard (Society Metrics & Quick Actions)
-        │
-        ├── Profile (Details, Edit Profile, Change Password, Logout)
-        │
-        └── Settings (Theme: System/Light/Dark, Account, About, Terms & Privacy Placeholders)
-```
-
-> **Strict Phase 1 Focus**: Do not include roadmap, features, models, or requirements from subsequent phases (e.g., resident assignment, accounting, visitors, maintenance tickets).
-
----
+## 1. Project
+- **App**: Society Management (Flutter/Dart) — Android · iOS · Web
+- **Phase**: 1 ONLY (no future phases: resident assignment, accounting, visitors, maintenance tickets)
+- **Phase 1 scope**: Splash/Login/Forgot Password → 6 Roles (SUPER_ADMIN, SOCIETY_ADMIN, COMMITTEE_MEMBER, RESIDENT, SECURITY, STAFF) → Society (Profile, Towers, Floors, Flats CRUD/Search/Filter/Sort) → Dashboard (metrics, quick actions) → Profile (edit, change password, logout) → Settings (theme, about, legal placeholders)
 
 ## 2. Development Rules
+1. Read `AGENTS.md` → `MEMORY.md` → `SKILLS.md` → `ARCHITECTURE.md` before any changes.
+2. Inspect existing code; never assume file contents.
+3. Preserve working functionality; no breaking changes.
+4. Avoid unnecessary rewrites or extra dependencies.
+5. Follow existing conventions (formatting, naming, layers).
+6. Use shared components: `AppButton`, `AppTextField`, `AppScaffold`, `StatusBadge`, `StateViews`.
+7. Business logic outside widgets — widgets bind to notifiers and render state only.
+8. Responsive: Mobile (<600px) · Tablet (600–1024px) · Desktop (>1024px).
+9. All data screens handle 4 states: Loading · Empty · Error · Success.
+10. Production-quality: typed, error-bounded, null-safe code.
+11. Update docs on every architectural/implementation decision change.
 
-The AI agent must adhere strictly to these rules:
+## 3. Workflow
+`AGENTS.md → MEMORY.md → SKILLS.md → inspect code/deps → understand → plan → implement incrementally → test (unit/widget/integration) → flutter analyze → fix → update MEMORY.md + CHANGELOG.md`
 
-1. **Read `AGENTS.md`** before making any project changes.
-2. **Read `MEMORY.md`** before continuing existing work to understand current project state.
-3. **Read `SKILLS.md`** before implementing established patterns (Riverpod, GoRouter, Responsive UI, Forms).
-4. **Read `ARCHITECTURE.md`** before introducing or adjusting architectural layers.
-5. **Inspect existing code** before modifying it. Never assume file contents or structure.
-6. **Preserve working functionality** and avoid breaking changes.
-7. **Avoid unnecessary rewrites** and respect incremental refactoring.
-8. **Avoid unnecessary dependencies**; only rely on vetted, robust packages.
-9. **Follow existing project conventions** across formatting, naming, and architectural layers.
-10. **Use reusable components** (`AppButton`, `AppTextField`, `AppScaffold`, `StatusBadge`, `StateViews`).
-11. **Keep business logic outside UI widgets**; widgets must only bind to notifiers/controllers and render state.
-12. **Maintain responsive design** across Mobile (<600px), Tablet (600–1024px), and Web/Desktop (>1024px).
-13. **Handle all 4 primary UI states**: Loading, Empty, Success, and Error.
-14. **Write maintainable, production-quality code** with clear typing, error boundaries, and null safety.
-15. **Update documentation** whenever an important implementation decision or architectural rule changes.
-
----
-
-## 3. Required Workflow
-
-Every task performed by the AI agent must strictly follow this sequential workflow:
-
-```text
-Read project instructions (AGENTS.md)
-        ↓
-Read project memory (MEMORY.md)
-        ↓
-Read project skills (SKILLS.md)
-        ↓
-Inspect existing code & dependencies
-        ↓
-Understand requirement
-        ↓
-Plan & design
-        ↓
-Implement incrementally
-        ↓
-Test (Unit, Widget, Integration)
-        ↓
-Run analysis (flutter analyze)
-        ↓
-Fix identified issues
-        ↓
-Update documentation (MEMORY.md, CHANGELOG.md)
-```
-
-Never blindly overwrite the existing project.
+**Never blindly overwrite the existing project.**

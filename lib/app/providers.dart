@@ -15,7 +15,6 @@ import '../features/settings/domain/settings_repository.dart';
 import '../features/society/data/flat_repository_impl.dart';
 import '../features/society/data/floor_repository_impl.dart';
 import '../features/society/data/society_data_source.dart';
-import '../features/society/data/society_mock_data_source.dart';
 import '../features/society/data/society_repository_impl.dart';
 import '../features/society/data/supabase_society_data_source.dart';
 import '../features/society/data/tower_repository_impl.dart';
@@ -42,22 +41,14 @@ final fileStorageServiceProvider = Provider<FileStorageService>((ref) {
   return SupabaseFileStorageService();
 });
 
-// Mock Data Source Singleton Provider
-final societyMockDataSourceProvider = Provider<SocietyMockDataSource>((ref) {
-  return SocietyMockDataSource();
-});
-
 // Production Supabase Society Data Source Provider
 final supabaseSocietyDataSourceProvider = Provider<SupabaseSocietyDataSource>((ref) {
   return SupabaseSocietyDataSource();
 });
 
-// Active Society Data Source (Supabase in production, Mock for tests/fallback)
+// Active Society Data Source (Supabase in production)
 final societyDataSourceProvider = Provider<SocietyDataSource>((ref) {
-  if (AppConfig.isSupabaseConfigured) {
-    return ref.watch(supabaseSocietyDataSourceProvider);
-  }
-  return ref.watch(societyMockDataSourceProvider);
+  return ref.watch(supabaseSocietyDataSourceProvider);
 });
 
 final authMockDataSourceProvider = Provider<AuthMockDataSource>((ref) {

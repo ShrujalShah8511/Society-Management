@@ -12,11 +12,24 @@ import '../domain/floor.dart';
 import 'floor_form_dialog.dart';
 import 'floor_notifier.dart';
 
-class FloorListScreen extends ConsumerWidget {
+class FloorListScreen extends ConsumerStatefulWidget {
   const FloorListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<FloorListScreen> createState() => _FloorListScreenState();
+}
+
+class _FloorListScreenState extends ConsumerState<FloorListScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(floorNotifierProvider.notifier).init();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(floorNotifierProvider);
     final authState = ref.watch(authNotifierProvider);
     final canManage = RolePermissions.canManageFloors(authState.role);
@@ -135,6 +148,11 @@ class FloorListScreen extends ConsumerWidget {
                         ],
                       );
 
+                      final suggestedNextFloor = state.floors.isEmpty
+                          ? 1
+                          : (state.floors.map((f) => f.floorNumber).reduce((a, b) => a > b ? a : b) + 1);
+                      final hasMissingFloors = selectedTower != null && state.floors.length < selectedTower.floorCount;
+
                       if (isMobile) {
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -142,6 +160,32 @@ class FloorListScreen extends ConsumerWidget {
                             headerLeft,
                             if (canManage && selectedTower != null) ...[
                               const SizedBox(height: 12),
+                              if (hasMissingFloors) ...[
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: AppButton(
+                                    key: const Key('autogen_floors_button'),
+                                    text: 'Auto-Generate Floors (${selectedTower.floorCount - state.floors.length} missing)',
+                                    icon: Icons.auto_awesome_rounded,
+                                    variant: AppButtonVariant.secondary,
+                                    height: 42,
+                                    onPressed: () async {
+                                      final created = await ref
+                                          .read(floorNotifierProvider.notifier)
+                                          .autoGenerateFloorsForTower(selectedTower);
+                                      if (created > 0 && context.mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Auto-generated $created standard floors (Floor 1 to Floor ${selectedTower.floorCount})'),
+                                            backgroundColor: AppColors.success,
+                                          ),
+                                        );
+                                      }
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                              ],
                               SizedBox(
                                 width: double.infinity,
                                 child: AppButton(
@@ -153,6 +197,7 @@ class FloorListScreen extends ConsumerWidget {
                                     final result = await FloorFormDialog.show(
                                       context,
                                       towerName: selectedTower.name,
+                                      suggestedFloorNumber: suggestedNextFloor,
                                     );
                                     if (result != null) {
                                       final success = await ref
@@ -183,6 +228,29 @@ class FloorListScreen extends ConsumerWidget {
                         children: [
                           Expanded(child: headerLeft),
                           if (canManage && selectedTower != null) ...[
+                            if (hasMissingFloors) ...[
+                              const SizedBox(width: 10),
+                              AppButton(
+                                key: const Key('autogen_floors_button'),
+                                text: 'Auto-Generate Floors (${selectedTower.floorCount - state.floors.length} missing)',
+                                icon: Icons.auto_awesome_rounded,
+                                variant: AppButtonVariant.secondary,
+                                height: 42,
+                                onPressed: () async {
+                                  final created = await ref
+                                      .read(floorNotifierProvider.notifier)
+                                      .autoGenerateFloorsForTower(selectedTower);
+                                  if (created > 0 && context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Auto-generated $created standard floors (Floor 1 to Floor ${selectedTower.floorCount})'),
+                                        backgroundColor: AppColors.success,
+                                      ),
+                                    );
+                                  }
+                                },
+                              ),
+                            ],
                             const SizedBox(width: 14),
                             AppButton(
                               key: const Key('add_floor_button'),
@@ -193,6 +261,7 @@ class FloorListScreen extends ConsumerWidget {
                                 final result = await FloorFormDialog.show(
                                   context,
                                   towerName: selectedTower.name,
+                                  suggestedFloorNumber: suggestedNextFloor,
                                 );
                                 if (result != null) {
                                   final success = await ref
@@ -301,21 +370,42 @@ class FloorListScreen extends ConsumerWidget {
             SliverFillRemaining(
               child: EmptyStateView(
                 title: 'No Floors Configured',
-                message: 'No floors have been added to ${selectedTower?.name ?? "this tower"} yet.',
+                message: selectedTower != null && selectedTower.floorCount > 0
+                    ? 'No floors have been added to ${selectedTower.name} yet (${selectedTower.floorCount} floors planned).'
+                    : 'No floors have been added to ${selectedTower?.name ?? "this tower"} yet.',
                 icon: Icons.layers_clear_outlined,
-                actionLabel: canManage ? 'Add Floor' : null,
+                actionLabel: canManage
+                    ? (selectedTower != null && selectedTower.floorCount > 0
+                        ? 'Auto-Generate ${selectedTower.floorCount} Floors'
+                        : 'Add Floor')
+                    : null,
                 onAction: canManage && selectedTower != null
                     ? () async {
-                        final result = await FloorFormDialog.show(
-                          context,
-                          towerName: selectedTower.name,
-                        );
-                        if (result != null) {
-                          await ref.read(floorNotifierProvider.notifier).createFloor(
-                                floorNumber: result.floorNumber,
-                                displayName: result.displayName,
-                                status: result.status,
-                              );
+                        if (selectedTower.floorCount > 0) {
+                          final created = await ref
+                              .read(floorNotifierProvider.notifier)
+                              .autoGenerateFloorsForTower(selectedTower);
+                          if (created > 0 && context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Auto-generated $created standard floors (Floor 1 to Floor ${selectedTower.floorCount})'),
+                                backgroundColor: AppColors.success,
+                              ),
+                            );
+                          }
+                        } else {
+                          final result = await FloorFormDialog.show(
+                            context,
+                            towerName: selectedTower.name,
+                            suggestedFloorNumber: 1,
+                          );
+                          if (result != null) {
+                            await ref.read(floorNotifierProvider.notifier).createFloor(
+                                  floorNumber: result.floorNumber,
+                                  displayName: result.displayName,
+                                  status: result.status,
+                                );
+                          }
                         }
                       }
                     : null,

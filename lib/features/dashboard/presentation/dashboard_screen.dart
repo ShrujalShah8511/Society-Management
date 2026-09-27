@@ -7,7 +7,6 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/society_logo_widget.dart';
 import '../../../core/widgets/state_views.dart';
-import '../../../core/widgets/status_badge.dart';
 import '../../authentication/presentation/auth_notifier.dart';
 import '../../society/presentation/active_society_provider.dart';
 import '../../society/presentation/society_profile_notifier.dart';
@@ -33,11 +32,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final dashboardState = ref.watch(dashboardNotifierProvider);
-    final society = ref.watch(societyProfileNotifierProvider).society;
+    final activeSociety = ref.watch(activeSocietyProvider).activeSociety;
+    final society = activeSociety ?? ref.watch(societyProfileNotifierProvider).society;
     final authState = ref.watch(authNotifierProvider);
     final user = authState.user;
-    final userRole = authState.role;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    ref.listen<ActiveSocietyState>(activeSocietyProvider, (previous, next) {
+      if (next.activeSociety != null && next.activeSociety?.id != previous?.activeSociety?.id) {
+        ref.read(dashboardNotifierProvider.notifier).loadStats(next.activeSociety!.id);
+      }
+    });
 
     if (dashboardState.isLoading) {
       return const Scaffold(
@@ -49,7 +54,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       return Scaffold(
         body: ErrorRetryView(
           message: dashboardState.errorMessage!,
-          onRetry: () => ref.read(dashboardNotifierProvider.notifier).loadStats(),
+          onRetry: () {
+            final active = ref.read(activeSocietyProvider).activeSociety;
+            ref.read(dashboardNotifierProvider.notifier).loadStats(active?.id);
+          },
         ),
       );
     }
@@ -60,7 +68,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
       body: RefreshIndicator(
         onRefresh: () async {
-          await ref.read(dashboardNotifierProvider.notifier).loadStats();
+          final active = ref.read(activeSocietyProvider).activeSociety;
+          await ref.read(dashboardNotifierProvider.notifier).loadStats(active?.id);
         },
         child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(
@@ -175,8 +184,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _buildSocietyInfoCard(society, isDark),
-                              const SizedBox(height: 24),
-                              _buildSystemStatusCard(userRole, isDark),
                             ],
                           ),
                         ),
@@ -193,8 +200,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       _buildQuickActionsSection(context, isDark),
                       const SizedBox(height: 24),
                       _buildSocietyInfoCard(society, isDark),
-                      const SizedBox(height: 24),
-                      _buildSystemStatusCard(userRole, isDark),
                     ],
                   );
                 },
@@ -244,38 +249,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           final titleContent = Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Text(
-                    'Welcome back, ${user?.name ?? "Administrator"}',
-                    style: TextStyle(
-                      fontSize: isNarrow ? 16 : 20,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.3,
-                      color: AppColors.white,
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.mintNeon.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.mintNeon.withValues(alpha: 0.4)),
-                    ),
-                    child: const Text(
-                      'ONLINE',
-                      style: TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.mintNeon,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ),
-                ],
+              Text(
+                'Welcome back, ${user?.name ?? "Administrator"}',
+                style: TextStyle(
+                  fontSize: isNarrow ? 16 : 20,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.3,
+                  color: AppColors.white,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
@@ -642,47 +623,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
-  // --- 6. Operational Status Card (Right Column) ---
-  Widget _buildSystemStatusCard(dynamic userRole, bool isDark) {
-    return HoverLiftCard(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              PulsingStatusDot(color: AppColors.primary, size: 7),
-              SizedBox(width: 10),
-              Text(
-                'System Status',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.surfaceDarkHigher : AppColors.slate100,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Current Role', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                StatusBadge.forRole(userRole.code),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'All Systems Operational',
-            style: TextStyle(fontSize: 12, color: isDark ? AppColors.slate400 : AppColors.slate500),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildInfoRow(String label, String value, bool isDark) {
     return Row(

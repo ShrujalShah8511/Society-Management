@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 import '../../../core/network/supabase_client_manager.dart';
@@ -6,25 +7,35 @@ import '../domain/floor.dart';
 import '../domain/society.dart';
 import '../domain/tower.dart';
 import 'society_data_source.dart';
-import 'society_mock_data_source.dart';
 
-/// Supabase PostgreSQL Data Source for Society, Towers, Floors, and Flats
-/// Automatically falls back to in-memory MockDataSource when Supabase is unconfigured or in test mode.
+/// Production Supabase PostgreSQL Data Source for Society, Towers, Floors, and Flats.
+/// Operates directly on the live Supabase PostgreSQL backend with zero synthetic mock dependencies.
 class SupabaseSocietyDataSource implements SocietyDataSource {
-  final SocietyMockDataSource _fallbackMock = SocietyMockDataSource();
-
   static final RegExp _uuidRegex = RegExp(
     r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
   );
 
   String _normalizeSocietyId(String societyId) {
     if (!_uuidRegex.hasMatch(societyId)) {
-      return '0bb542a1-9954-4bc7-a4d8-cf1821341681';
+      return '7d50533b-ad29-461a-8d10-477987357e44';
     }
     return societyId;
   }
 
   sb.SupabaseClient? get _client => SupabaseClientManager.client;
+
+  String _encodeSocietyAddress(Society society) {
+    return jsonEncode({
+      'street': society.address,
+      'city': society.city,
+      'state': society.state,
+      'country': society.country,
+      'pin_code': society.pinCode,
+      'contact_number': society.contactNumber,
+      'email': society.email,
+      'website': society.website ?? '',
+    });
+  }
 
   // ===========================================================================
   // SOCIETIES
@@ -33,79 +44,79 @@ class SupabaseSocietyDataSource implements SocietyDataSource {
   @override
   Future<List<Society>> getSocieties() async {
     final client = _client;
-    if (client == null) return _fallbackMock.getSocieties();
+    if (client == null) return [];
 
     try {
-      final data = await client.from('societies').select().order('name');
+      final data = await client.from('societies').select().order('created_at', ascending: true);
       return (data as List).map((row) => _mapRowToSociety(row as Map<String, dynamic>)).toList();
     } catch (e) {
-      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] getSocieties error: $e. Falling back to mock.');
-      return _fallbackMock.getSocieties();
+      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] getSocieties error: $e');
+      rethrow;
     }
   }
 
   @override
   Future<Society> getSocietyProfile(String societyId) async {
     final client = _client;
-    if (client == null) return _fallbackMock.getSocietyProfile(societyId);
+    if (client == null) throw StateError('Supabase is not initialized.');
 
     try {
       final row = await client.from('societies').select().eq('id', societyId).single();
       return _mapRowToSociety(row);
     } catch (e) {
-      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] getSocietyProfile error: $e. Falling back to mock.');
-      return _fallbackMock.getSocietyProfile(societyId);
+      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] getSocietyProfile error: $e');
+      rethrow;
     }
   }
 
   @override
   Future<Society> createSociety(Society society) async {
     final client = _client;
-    if (client == null) return _fallbackMock.createSociety(society);
+    if (client == null) throw StateError('Supabase is not initialized.');
 
     try {
       final row = await client.from('societies').insert({
         'name': society.name,
-        'address': society.address,
+        'address': _encodeSocietyAddress(society),
         'logo_url': society.logoUrl,
         'rera_number': society.registrationNumber,
       }).select().single();
       return _mapRowToSociety(row);
     } catch (e) {
-      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] createSociety error: $e. Falling back to mock.');
-      return _fallbackMock.createSociety(society);
+      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] createSociety error: $e');
+      rethrow;
     }
   }
 
   @override
   Future<Society> updateSocietyProfile(Society society) async {
     final client = _client;
-    if (client == null) return _fallbackMock.updateSocietyProfile(society);
+    if (client == null) throw StateError('Supabase is not initialized.');
 
     try {
       final row = await client.from('societies').update({
         'name': society.name,
-        'address': society.address,
+        'address': _encodeSocietyAddress(society),
         'logo_url': society.logoUrl,
         'rera_number': society.registrationNumber,
       }).eq('id', society.id).select().single();
       return _mapRowToSociety(row);
     } catch (e) {
-      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] updateSocietyProfile error: $e. Falling back to mock.');
-      return _fallbackMock.updateSocietyProfile(society);
+      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] updateSocietyProfile error: $e');
+      rethrow;
     }
   }
 
   @override
   Future<void> deleteSociety(String societyId) async {
     final client = _client;
-    if (client == null) return _fallbackMock.deleteSociety(societyId);
+    if (client == null) throw StateError('Supabase is not initialized.');
 
     try {
       await client.from('societies').delete().eq('id', societyId);
     } catch (e) {
-      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] deleteSociety error: $e. Falling back to mock.');
-      return _fallbackMock.deleteSociety(societyId);
+      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] deleteSociety error: $e');
+      rethrow;
     }
   }
 
@@ -116,54 +127,50 @@ class SupabaseSocietyDataSource implements SocietyDataSource {
   @override
   Future<List<Tower>> getTowers(String societyId) async {
     final client = _client;
-    if (client == null) return _fallbackMock.getTowers(societyId);
+    if (client == null) return [];
 
     try {
       final normSocietyId = _normalizeSocietyId(societyId);
-      final data = await client.from('towers').select().eq('society_id', normSocietyId).order('name');
+      final data = await client.from('towers').select().eq('society_id', normSocietyId).order('created_at', ascending: true);
       return (data as List).map((row) => _mapRowToTower(row as Map<String, dynamic>)).toList();
     } catch (e) {
-      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] getTowers error: $e. Falling back to mock.');
-      return _fallbackMock.getTowers(societyId);
+      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] getTowers error: $e');
+      rethrow;
     }
   }
 
   @override
   Future<Tower> getTowerById(String id) async {
     final client = _client;
-    if (client == null) return _fallbackMock.getTowerById(id);
+    if (client == null) throw StateError('Supabase is not initialized.');
 
-    try {
-      final row = await client.from('towers').select().eq('id', id).single();
-      return _mapRowToTower(row);
-    } catch (e) {
-      return _fallbackMock.getTowerById(id);
-    }
+    final row = await client.from('towers').select().eq('id', id).single();
+    return _mapRowToTower(row);
   }
 
   @override
   Future<Tower> createTower(Tower tower) async {
     final client = _client;
-    if (client == null) return _fallbackMock.createTower(tower);
+    if (client == null) throw StateError('Supabase is not initialized.');
 
     try {
       final row = await client.from('towers').insert({
-        'society_id': tower.societyId,
+        'society_id': _normalizeSocietyId(tower.societyId),
         'name': tower.name,
         'total_floors': tower.floorCount,
         'is_active': tower.status == TowerStatus.active,
       }).select().single();
       return _mapRowToTower(row);
     } catch (e) {
-      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] createTower error: $e. Falling back to mock.');
-      return _fallbackMock.createTower(tower);
+      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] createTower error: $e');
+      rethrow;
     }
   }
 
   @override
   Future<Tower> updateTower(Tower tower) async {
     final client = _client;
-    if (client == null) return _fallbackMock.updateTower(tower);
+    if (client == null) throw StateError('Supabase is not initialized.');
 
     try {
       final row = await client.from('towers').update({
@@ -173,19 +180,21 @@ class SupabaseSocietyDataSource implements SocietyDataSource {
       }).eq('id', tower.id).select().single();
       return _mapRowToTower(row);
     } catch (e) {
-      return _fallbackMock.updateTower(tower);
+      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] updateTower error: $e');
+      rethrow;
     }
   }
 
   @override
   Future<void> deleteTower(String id) async {
     final client = _client;
-    if (client == null) return _fallbackMock.deleteTower(id);
+    if (client == null) throw StateError('Supabase is not initialized.');
 
     try {
       await client.from('towers').delete().eq('id', id);
     } catch (e) {
-      return _fallbackMock.deleteTower(id);
+      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] deleteTower error: $e');
+      rethrow;
     }
   }
 
@@ -196,7 +205,7 @@ class SupabaseSocietyDataSource implements SocietyDataSource {
   @override
   Future<List<Floor>> getFloors({required String societyId, String? towerId}) async {
     final client = _client;
-    if (client == null) return _fallbackMock.getFloors(societyId: societyId, towerId: towerId);
+    if (client == null) return [];
 
     try {
       final normSocietyId = _normalizeSocietyId(societyId);
@@ -206,36 +215,58 @@ class SupabaseSocietyDataSource implements SocietyDataSource {
       } else {
         query = query.eq('society_id', normSocietyId);
       }
-      final data = await query.order('floor_number');
+      final data = await query.order('floor_number', ascending: true);
       return (data as List).map((row) => _mapRowToFloor(row as Map<String, dynamic>)).toList();
     } catch (e) {
-      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] getFloors error: $e. Falling back to mock.');
-      return _fallbackMock.getFloors(societyId: societyId, towerId: towerId);
+      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] getFloors error: $e');
+      rethrow;
     }
   }
 
   @override
   Future<Floor> createFloor(Floor floor) async {
     final client = _client;
-    if (client == null) return _fallbackMock.createFloor(floor);
+    if (client == null) throw StateError('Supabase is not initialized.');
 
     try {
       final row = await client.from('floors').insert({
         'tower_id': floor.towerId,
-        'society_id': floor.societyId,
+        'society_id': _normalizeSocietyId(floor.societyId),
         'floor_number': floor.floorNumber,
         'floor_name': floor.displayName,
       }).select().single();
       return _mapRowToFloor(row);
     } catch (e) {
-      return _fallbackMock.createFloor(floor);
+      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] createFloor error: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<Floor>> createFloors(List<Floor> floors) async {
+    if (floors.isEmpty) return [];
+    final client = _client;
+    if (client == null) throw StateError('Supabase is not initialized.');
+
+    try {
+      final rowsToInsert = floors.map((f) => {
+        'tower_id': f.towerId,
+        'society_id': _normalizeSocietyId(f.societyId),
+        'floor_number': f.floorNumber,
+        'floor_name': f.displayName,
+      }).toList();
+      final data = await client.from('floors').insert(rowsToInsert).select();
+      return (data as List).map((row) => _mapRowToFloor(row as Map<String, dynamic>)).toList();
+    } catch (e) {
+      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] createFloors error: $e');
+      rethrow;
     }
   }
 
   @override
   Future<Floor> updateFloor(Floor floor) async {
     final client = _client;
-    if (client == null) return _fallbackMock.updateFloor(floor);
+    if (client == null) throw StateError('Supabase is not initialized.');
 
     try {
       final row = await client.from('floors').update({
@@ -244,19 +275,21 @@ class SupabaseSocietyDataSource implements SocietyDataSource {
       }).eq('id', floor.id).select().single();
       return _mapRowToFloor(row);
     } catch (e) {
-      return _fallbackMock.updateFloor(floor);
+      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] updateFloor error: $e');
+      rethrow;
     }
   }
 
   @override
   Future<void> deleteFloor(String id) async {
     final client = _client;
-    if (client == null) return _fallbackMock.deleteFloor(id);
+    if (client == null) throw StateError('Supabase is not initialized.');
 
     try {
       await client.from('floors').delete().eq('id', id);
     } catch (e) {
-      return _fallbackMock.deleteFloor(id);
+      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] deleteFloor error: $e');
+      rethrow;
     }
   }
 
@@ -276,18 +309,7 @@ class SupabaseSocietyDataSource implements SocietyDataSource {
     bool ascending = true,
   }) async {
     final client = _client;
-    if (client == null) {
-      return _fallbackMock.getFlats(
-        societyId: societyId,
-        towerId: towerId,
-        floorId: floorId,
-        flatType: flatType,
-        occupancyStatus: occupancyStatus,
-        searchQuery: searchQuery,
-        sortBy: sortBy,
-        ascending: ascending,
-      );
-    }
+    if (client == null) return [];
 
     try {
       final normSocietyId = _normalizeSocietyId(societyId);
@@ -302,7 +324,15 @@ class SupabaseSocietyDataSource implements SocietyDataSource {
         query = query.eq('status', occupancyStatus.code);
       }
 
-      final data = await query.order('flat_number', ascending: ascending);
+      String sortCol = 'created_at';
+      if (sortBy == 'number') {
+        sortCol = 'flat_number';
+      } else if (sortBy == 'area') {
+        sortCol = 'area_sqft';
+      } else if (sortBy != null && sortBy.isNotEmpty && sortBy != 'created') {
+        sortCol = sortBy;
+      }
+      final data = await query.order(sortCol, ascending: ascending);
       var flats = (data as List).map((row) => _mapRowToFlat(row as Map<String, dynamic>)).toList();
 
       if (searchQuery != null && searchQuery.trim().isNotEmpty) {
@@ -312,37 +342,24 @@ class SupabaseSocietyDataSource implements SocietyDataSource {
 
       return flats;
     } catch (e) {
-      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] getFlats error: $e. Falling back to mock.');
-      return _fallbackMock.getFlats(
-        societyId: societyId,
-        towerId: towerId,
-        floorId: floorId,
-        flatType: flatType,
-        occupancyStatus: occupancyStatus,
-        searchQuery: searchQuery,
-        sortBy: sortBy,
-        ascending: ascending,
-      );
+      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] getFlats error: $e');
+      rethrow;
     }
   }
 
   @override
   Future<Flat> getFlatById(String id) async {
     final client = _client;
-    if (client == null) return _fallbackMock.getFlatById(id);
+    if (client == null) throw StateError('Supabase is not initialized.');
 
-    try {
-      final row = await client.from('flats').select().eq('id', id).single();
-      return _mapRowToFlat(row);
-    } catch (e) {
-      return _fallbackMock.getFlatById(id);
-    }
+    final row = await client.from('flats').select().eq('id', id).single();
+    return _mapRowToFlat(row);
   }
 
   @override
   Future<Flat> createFlat(Flat flat) async {
     final client = _client;
-    if (client == null) return _fallbackMock.createFlat(flat);
+    if (client == null) throw StateError('Supabase is not initialized.');
 
     try {
       final normSocietyId = _normalizeSocietyId(flat.societyId);
@@ -357,15 +374,39 @@ class SupabaseSocietyDataSource implements SocietyDataSource {
       }).select().single();
       return _mapRowToFlat(row);
     } catch (e) {
-      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] createFlat error: $e. Falling back to mock.');
-      return _fallbackMock.createFlat(flat);
+      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] createFlat error: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<Flat>> createFlats(List<Flat> flats) async {
+    if (flats.isEmpty) return [];
+    final client = _client;
+    if (client == null) throw StateError('Supabase is not initialized.');
+
+    try {
+      final rowsToInsert = flats.map((flat) => {
+        'society_id': _normalizeSocietyId(flat.societyId),
+        'tower_id': flat.towerId,
+        'floor_id': flat.floorId,
+        'flat_number': flat.flatNumber,
+        'bhk_type': flat.flatType.code,
+        'status': flat.occupancyStatus.code,
+        'area_sqft': flat.areaSqFt,
+      }).toList();
+      final data = await client.from('flats').insert(rowsToInsert).select();
+      return (data as List).map((row) => _mapRowToFlat(row as Map<String, dynamic>)).toList();
+    } catch (e) {
+      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] createFlats error: $e');
+      rethrow;
     }
   }
 
   @override
   Future<Flat> updateFlat(Flat flat) async {
     final client = _client;
-    if (client == null) return _fallbackMock.updateFlat(flat);
+    if (client == null) throw StateError('Supabase is not initialized.');
 
     try {
       final row = await client.from('flats').update({
@@ -376,21 +417,21 @@ class SupabaseSocietyDataSource implements SocietyDataSource {
       }).eq('id', flat.id).select().single();
       return _mapRowToFlat(row);
     } catch (e) {
-      return _fallbackMock.updateFlat(flat);
+      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] updateFlat error: $e');
+      rethrow;
     }
   }
 
   @override
   Future<void> deleteFlat(String id) async {
     final client = _client;
-    if (client == null) return _fallbackMock.deleteFlat(id);
+    if (client == null) throw StateError('Supabase is not initialized.');
 
     try {
       await client.from('flats').delete().eq('id', id);
-      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] Deleted flat $id from PostgreSQL.');
     } catch (e) {
-      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] deleteFlat error: $e. Falling back to mock.');
-      return _fallbackMock.deleteFlat(id);
+      if (kDebugMode) debugPrint('[SupabaseSocietyDataSource] deleteFlat error: $e');
+      rethrow;
     }
   }
 
@@ -399,30 +440,61 @@ class SupabaseSocietyDataSource implements SocietyDataSource {
   // ===========================================================================
 
   Society _mapRowToSociety(Map<String, dynamic> row) {
+    final rawAddress = row['address'] as String? ?? '';
+    String street = rawAddress;
+    String city = '';
+    String state = '';
+    String country = '';
+    String pinCode = '';
+    String contactNumber = '';
+    String email = '';
+    String? website;
+
+    if (rawAddress.trim().startsWith('{') && rawAddress.trim().endsWith('}')) {
+      try {
+        final decoded = jsonDecode(rawAddress) as Map<String, dynamic>;
+        street = decoded['street'] as String? ?? '';
+        city = decoded['city'] as String? ?? '';
+        state = decoded['state'] as String? ?? '';
+        country = decoded['country'] as String? ?? '';
+        pinCode = decoded['pin_code'] as String? ?? '';
+        contactNumber = decoded['contact_number'] as String? ?? '';
+        email = decoded['email'] as String? ?? '';
+        final web = decoded['website'] as String?;
+        website = (web != null && web.isNotEmpty) ? web : null;
+      } catch (_) {
+        street = rawAddress;
+      }
+    }
+
     return Society(
       id: row['id'] as String,
-      name: row['name'] as String? ?? 'Unnamed Society',
+      name: row['name'] as String? ?? '',
       logoUrl: row['logo_url'] as String?,
-      address: row['address'] as String? ?? '',
-      city: row['city'] as String? ?? 'Ahmedabad',
-      state: row['state'] as String? ?? 'Gujarat',
-      country: row['country'] as String? ?? 'India',
-      pinCode: row['pin_code'] as String? ?? '380015',
-      contactNumber: row['contact_number'] as String? ?? '+91 98765 43210',
-      email: row['email'] as String? ?? 'info@society.com',
-      registrationNumber: row['rera_number'] as String? ?? 'REG-001',
-      website: row['website'] as String?,
+      address: street,
+      city: city,
+      state: state,
+      country: country,
+      pinCode: pinCode,
+      contactNumber: contactNumber,
+      email: email,
+      registrationNumber: row['rera_number'] as String? ?? '',
+      website: website ?? (row['website'] as String?),
+      createdAt: DateTime.tryParse(row['created_at'] as String? ?? '') ??
+          DateTime.tryParse(row['updated_at'] as String? ?? ''),
       updatedAt: DateTime.tryParse(row['updated_at'] as String? ?? '') ?? DateTime.now(),
     );
   }
 
   Tower _mapRowToTower(Map<String, dynamic> row) {
+    final desc = row['description'] as String? ?? '';
     return Tower(
       id: row['id'] as String,
       societyId: row['society_id'] as String,
       name: row['name'] as String? ?? 'Tower',
-      description: row['description'] as String? ?? '',
+      description: desc,
       floorCount: (row['total_floors'] as num?)?.toInt() ?? 0,
+      flatsPerFloor: Tower.extractFlatsPerFloor(desc),
       status: (row['is_active'] as bool? ?? true) ? TowerStatus.active : TowerStatus.inactive,
       createdAt: DateTime.tryParse(row['created_at'] as String? ?? '') ?? DateTime.now(),
     );
@@ -459,20 +531,20 @@ class SupabaseSocietyDataSource implements SocietyDataSource {
   // ===========================================================================
 
   @override
-  int getTotalTowers(String societyId) => _client == null ? _fallbackMock.getTotalTowers(societyId) : 0;
+  int getTotalTowers(String societyId) => 0;
 
   @override
-  int getTotalFloors(String societyId) => _client == null ? _fallbackMock.getTotalFloors(societyId) : 0;
+  int getTotalFloors(String societyId) => 0;
 
   @override
-  int getTotalFlats(String societyId) => _client == null ? _fallbackMock.getTotalFlats(societyId) : 0;
+  int getTotalFlats(String societyId) => 0;
 
   @override
-  int getOccupiedFlats(String societyId) => _client == null ? _fallbackMock.getOccupiedFlats(societyId) : 0;
+  int getOccupiedFlats(String societyId) => 0;
 
   @override
-  int getVacantFlats(String societyId) => _client == null ? _fallbackMock.getVacantFlats(societyId) : 0;
+  int getVacantFlats(String societyId) => 0;
 
   @override
-  int getUnderMaintenanceFlats(String societyId) => _client == null ? _fallbackMock.getUnderMaintenanceFlats(societyId) : 0;
+  int getUnderMaintenanceFlats(String societyId) => 0;
 }

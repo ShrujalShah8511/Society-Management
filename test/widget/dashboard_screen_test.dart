@@ -5,7 +5,7 @@ import 'package:society_management/app/providers.dart';
 import 'package:society_management/core/storage/file_storage_service.dart';
 import 'package:society_management/core/theme/app_theme.dart';
 import 'package:society_management/features/dashboard/presentation/dashboard_screen.dart';
-import 'package:society_management/features/society/data/society_mock_data_source.dart';
+import '../helpers/mock_society_data_source.dart';
 import 'package:society_management/features/society/presentation/society_profile_notifier.dart';
 
 void main() {
@@ -16,7 +16,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          societyMockDataSourceProvider.overrideWithValue(mockSocietyDataSource),
+          societyDataSourceProvider.overrideWithValue(mockSocietyDataSource),
           societyProfileNotifierProvider.overrideWith(
             (ref) => SocietyProfileNotifier(
               ref.read(societyRepositoryProvider),

@@ -32,15 +32,24 @@ class DashboardState {
 
 class DashboardNotifier extends StateNotifier<DashboardState> {
   final DashboardRepository _repository;
+  String? _currentSocietyId;
 
-  DashboardNotifier(this._repository) : super(const DashboardState()) {
-    loadStats();
+  DashboardNotifier(this._repository, [String? initialSocietyId])
+      : _currentSocietyId = initialSocietyId,
+        super(const DashboardState()) {
+    loadStats(initialSocietyId);
   }
 
   Future<void> loadStats([String? societyId]) async {
+    if (societyId != null && societyId.isNotEmpty) {
+      _currentSocietyId = societyId;
+    }
+    final sId = (_currentSocietyId != null && _currentSocietyId!.isNotEmpty)
+        ? _currentSocietyId!
+        : AppConstants.defaultSocietyId;
+
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
-      final sId = societyId ?? AppConstants.defaultSocietyId;
       final stats = await _repository.getStats(sId);
       if (!mounted) return;
       state = state.copyWith(stats: stats, isLoading: false);
@@ -55,9 +64,5 @@ final dashboardNotifierProvider =
     StateNotifierProvider<DashboardNotifier, DashboardState>((ref) {
   final repository = ref.watch(dashboardRepositoryProvider);
   final activeSociety = ref.watch(activeSocietyProvider).activeSociety;
-  final notifier = DashboardNotifier(repository);
-  if (activeSociety != null) {
-    notifier.loadStats(activeSociety.id);
-  }
-  return notifier;
+  return DashboardNotifier(repository, activeSociety?.id);
 });

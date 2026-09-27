@@ -9,6 +9,8 @@ import '../../../core/widgets/status_badge.dart';
 import '../../authentication/presentation/auth_notifier.dart';
 import '../../role/domain/role.dart';
 import '../domain/tower.dart';
+import 'flat_notifier.dart';
+import 'floor_notifier.dart';
 import 'tower_form_dialog.dart';
 import 'tower_notifier.dart';
 
@@ -32,15 +34,29 @@ class _TowerListScreenState extends ConsumerState<TowerListScreen> {
     final result = await TowerFormDialog.show(context);
     if (result != null && mounted) {
       final success = await ref.read(towerNotifierProvider.notifier).createTower(
-            name: result.name,
-            description: result.description,
-            floorCount: result.floorCount,
-            status: result.status,
+            name: result.tower.name,
+            description: result.tower.description,
+            floorCount: result.tower.floorCount,
+            status: result.tower.status,
+            autogenerateFlats: result.autogenerateFlats,
+            flatsPerFloor: result.flatsPerFloor,
+            defaultFlatType: result.flatType,
+            flatPrefix: result.flatPrefix,
+            areaSqFt: result.areaSqFt,
           );
       if (success && mounted) {
+        ref.invalidate(floorNotifierProvider);
+        ref.invalidate(flatNotifierProvider);
+        final totalFlats = result.autogenerateFlats
+            ? result.tower.floorCount * result.flatsPerFloor
+            : 0;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Tower created successfully'),
+          SnackBar(
+            content: Text(
+              totalFlats > 0
+                  ? 'Tower "${result.tower.name}" created with ${result.tower.floorCount} floors & $totalFlats flats'
+                  : 'Tower "${result.tower.name}" created with ${result.tower.floorCount} floors',
+            ),
             backgroundColor: AppColors.success,
           ),
         );
@@ -52,8 +68,10 @@ class _TowerListScreenState extends ConsumerState<TowerListScreen> {
     final result = await TowerFormDialog.show(context, tower: tower);
     if (result != null && mounted) {
       final success =
-          await ref.read(towerNotifierProvider.notifier).updateTower(result);
+          await ref.read(towerNotifierProvider.notifier).updateTower(result.tower);
       if (success && mounted) {
+        ref.invalidate(floorNotifierProvider);
+        ref.invalidate(flatNotifierProvider);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Tower updated successfully'),
@@ -77,6 +95,8 @@ class _TowerListScreenState extends ConsumerState<TowerListScreen> {
       final success =
           await ref.read(towerNotifierProvider.notifier).deleteTower(tower.id);
       if (success && mounted) {
+        ref.invalidate(floorNotifierProvider);
+        ref.invalidate(flatNotifierProvider);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Tower deleted successfully'),

@@ -14,6 +14,7 @@ abstract class FlatRepository {
 
   Future<Flat> getFlatById(String id);
   Future<Flat> createFlat(Flat flat);
+  Future<List<Flat>> createFlats(List<Flat> flats);
   Future<Flat> updateFlat(Flat flat);
   Future<void> deleteFlat(String id);
 }
