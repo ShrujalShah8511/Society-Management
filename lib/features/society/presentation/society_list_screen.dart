@@ -473,7 +473,9 @@ class _SocietyListScreenState extends ConsumerState<SocietyListScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    'RERA: ${society.registrationNumber}',
+                    society.registrationNumber.isNotEmpty
+                        ? 'RERA: ${society.registrationNumber}'
+                        : 'RERA: Not specified',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontSize: 11, color: AppColors.slate500, fontWeight: FontWeight.w600),
@@ -669,11 +671,7 @@ class _CreateSocietyDialogState extends ConsumerState<_CreateSocietyDialog> {
 
     setState(() => _isSaving = true);
     final id = 'soc-${DateTime.now().millisecondsSinceEpoch}';
-    final rawCity = _cityController.text.trim();
-    final cityCode = rawCity.length >= 3 ? rawCity.toUpperCase().substring(0, 3) : 'SOC';
-    final regNum = _regController.text.trim().isEmpty
-        ? 'REG/$cityCode/2026/${DateTime.now().millisecond}'
-        : _regController.text.trim();
+    final regNum = _regController.text.trim();
 
     final newSociety = Society(
       id: id,

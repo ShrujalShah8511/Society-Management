@@ -613,7 +613,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           const SizedBox(height: 16),
           _buildInfoRow('Name', society?.name ?? 'Shyam Heights', isDark),
           const SizedBox(height: 10),
-          _buildInfoRow('RERA Number', society?.registrationNumber ?? 'PR/GJ/GANDHINAGAR/GANDHINAGAR/OTHERS/MAA10020/130422', isDark),
+          _buildInfoRow(
+            'RERA Number',
+            (society != null && society.registrationNumber.isNotEmpty)
+                ? society.registrationNumber
+                : (society == null ? 'PR/GJ/GANDHINAGAR/GANDHINAGAR/OTHERS/MAA10020/130422' : 'Not specified'),
+            isDark,
+          ),
           const SizedBox(height: 10),
           _buildInfoRow('Location', '${society?.city ?? "Gandhinagar"}, ${society?.state ?? "Gujarat"}', isDark),
           const SizedBox(height: 10),

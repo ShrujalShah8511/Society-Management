@@ -406,7 +406,9 @@ class _SocietyProfileScreenState extends ConsumerState<SocietyProfileScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'RERA / Reg: ${society.registrationNumber}',
+                              society.registrationNumber.isNotEmpty
+                                  ? 'RERA / Reg: ${society.registrationNumber}'
+                                  : 'RERA / Reg: Not specified',
                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                     color: AppColors.slate500,
                                   ),
