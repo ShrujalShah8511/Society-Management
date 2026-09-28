@@ -29,10 +29,12 @@ class SupabaseAuthDataSource implements AuthDataSource {
     // Support mobile number login by looking up the email in public.users
     if (!email.contains('@')) {
       try {
+        final cleanDigits = email.replaceAll(RegExp(r'[^0-9]'), '');
         final phoneLookup = await client
             .from('users')
             .select('email')
-            .eq('phone', email)
+            .or('phone.eq.$email,phone.ilike.%$cleanDigits%')
+            .limit(1)
             .maybeSingle();
 
         if (phoneLookup != null && phoneLookup['email'] != null) {
