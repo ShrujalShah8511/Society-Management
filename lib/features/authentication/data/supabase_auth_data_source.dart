@@ -98,6 +98,13 @@ class SupabaseAuthDataSource implements AuthDataSource {
               token: signUpRes.session!.accessToken,
               user: user,
             );
+          } else {
+            // In dev mode when email confirmation is pending on Supabase:
+            final user = _mapRowToUser(dbUser, fallbackSbUser: signUpRes.user, fallbackEmail: email);
+            return AuthSession(
+              token: 'dev-token-${user.id}',
+              user: user,
+            );
           }
         }
       } catch (inner) {
