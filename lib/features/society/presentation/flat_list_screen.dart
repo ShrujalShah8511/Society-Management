@@ -254,7 +254,15 @@ class _FlatListScreenState extends ConsumerState<FlatListScreen> {
                       currentTowerFlats = state.flats.length;
                     }
 
-                    final hasMissingFlats = expectedFlats > 0 && currentTowerFlats < expectedFlats;
+                    // Do not show auto-generate button when user is actively
+                    // filtering/searching — they are narrowing the view, not
+                    // indicating missing flats.
+                    final isFiltering = state.filters.searchQuery.isNotEmpty ||
+                        state.filters.selectedOccupancyStatus != null;
+
+                    final hasMissingFlats = !isFiltering &&
+                        expectedFlats > 0 &&
+                        currentTowerFlats < expectedFlats;
                     final missingFlatsCount = expectedFlats - currentTowerFlats;
 
                     if (isMobile) {

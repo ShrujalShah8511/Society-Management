@@ -10,8 +10,10 @@ import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/society_logo_widget.dart';
 import '../../../core/widgets/state_views.dart';
+import '../../authentication/domain/user.dart';
 import '../../authentication/presentation/auth_notifier.dart';
 import '../../role/domain/role.dart';
+import '../../users/presentation/user_form_dialog.dart';
 import '../domain/society.dart';
 import 'active_society_provider.dart';
 
@@ -573,6 +575,12 @@ class _CreateSocietyDialogState extends ConsumerState<_CreateSocietyDialog> {
   final _contactController = TextEditingController();
   final _emailController = TextEditingController();
   final _regController = TextEditingController();
+
+  // Mandatory Society Admin Fields
+  final _adminNameController = TextEditingController();
+  final _adminMobileController = TextEditingController();
+  final _adminEmailController = TextEditingController();
+
   String? _logoUrl;
   String? _logoFileName;
   bool _isSaving = false;
@@ -581,6 +589,9 @@ class _CreateSocietyDialogState extends ConsumerState<_CreateSocietyDialog> {
   void initState() {
     super.initState();
     _nameController.addListener(() {
+      if (mounted) setState(() {});
+    });
+    _adminMobileController.addListener(() {
       if (mounted) setState(() {});
     });
   }
@@ -595,6 +606,9 @@ class _CreateSocietyDialogState extends ConsumerState<_CreateSocietyDialog> {
     _contactController.dispose();
     _emailController.dispose();
     _regController.dispose();
+    _adminNameController.dispose();
+    _adminMobileController.dispose();
+    _adminEmailController.dispose();
     super.dispose();
   }
 
@@ -669,6 +683,23 @@ class _CreateSocietyDialogState extends ConsumerState<_CreateSocietyDialog> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final adminMobile = _adminMobileController.text.trim();
+    final authNotifier = ref.read(authNotifierProvider.notifier);
+
+    // Ensure mobile is not already assigned to another user
+    final existingUsers = await authNotifier.getUsers();
+    if (existingUsers.any((u) => u.mobile == adminMobile)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('A user with mobile number $adminMobile already exists. Please use a unique mobile number.'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+      return;
+    }
+
     setState(() => _isSaving = true);
     final id = 'soc-${DateTime.now().millisecondsSinceEpoch}';
     final regNum = _regController.text.trim();
@@ -689,16 +720,42 @@ class _CreateSocietyDialogState extends ConsumerState<_CreateSocietyDialog> {
     );
 
     final created = await ref.read(activeSocietyProvider.notifier).createSociety(newSociety);
-    setState(() => _isSaving = false);
 
     if (created != null && mounted) {
-      Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Society "${created.name}" registered and set as active!'),
-          backgroundColor: AppColors.success,
-        ),
+      // Generate Master User ID: usr-[CITY]-[incremental_number]
+      final cityCode = created.city.trim().isNotEmpty ? created.city.trim() : 'SOC';
+      final adminUserId = authNotifier.generateNextUserId(cityCode);
+      final temporaryPassword = 'Welcome@$adminMobile';
+
+      final adminUser = User(
+        id: adminUserId,
+        name: _adminNameController.text.trim(),
+        email: _adminEmailController.text.trim(),
+        mobile: adminMobile,
+        role: Role.societyAdmin,
+        societyId: created.id,
+        societyName: created.name,
+        mustChangePassword: true,
+        createdAt: DateTime.now(),
       );
+
+      await authNotifier.createUser(
+        user: adminUser,
+        temporaryPassword: temporaryPassword,
+      );
+
+      setState(() => _isSaving = false);
+
+      if (mounted) {
+        Navigator.of(context).pop();
+        await UserCreatedSuccessDialog.show(
+          context,
+          user: adminUser,
+          temporaryPassword: temporaryPassword,
+        );
+      }
+    } else {
+      setState(() => _isSaving = false);
     }
   }
 
@@ -995,6 +1052,155 @@ class _CreateSocietyDialogState extends ConsumerState<_CreateSocietyDialog> {
                     label: 'RERA / Registration Number (Optional)',
                     controller: _regController,
                     prefixIcon: Icons.badge_outlined,
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Mandatory Society Admin Assignment Section
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.admin_panel_settings_rounded, size: 20, color: AppColors.primary),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Society Administrator Assignment',
+                              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppColors.error.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Text(
+                                'Mandatory',
+                                style: TextStyle(color: AppColors.error, fontSize: 11, fontWeight: FontWeight.w700),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Designate the administrative account for this society. The user will be provisioned with default credentials and required to change password on first login.',
+                          style: TextStyle(color: AppColors.slate500, fontSize: 12),
+                        ),
+                        const SizedBox(height: 14),
+                        AppTextField(
+                          label: 'Admin Full Name',
+                          controller: _adminNameController,
+                          prefixIcon: Icons.person_rounded,
+                          validator: (v) => Validators.required(v, 'Admin Full Name'),
+                        ),
+                        const SizedBox(height: 14),
+                        LayoutBuilder(
+                          builder: (context, adminConstraints) {
+                            final isCompact = adminConstraints.maxWidth < 450;
+                            if (isCompact) {
+                              return Column(
+                                children: [
+                                  AppTextField(
+                                    label: 'Admin Mobile (Username)',
+                                    controller: _adminMobileController,
+                                    prefixIcon: Icons.phone_android_rounded,
+                                    keyboardType: TextInputType.phone,
+                                    validator: (v) {
+                                      final err = Validators.required(v, 'Admin Mobile');
+                                      if (err != null) return err;
+                                      return Validators.phone(v);
+                                    },
+                                  ),
+                                  const SizedBox(height: 14),
+                                  AppTextField(
+                                    label: 'Admin Email',
+                                    controller: _adminEmailController,
+                                    prefixIcon: Icons.email_rounded,
+                                    keyboardType: TextInputType.emailAddress,
+                                    validator: (v) {
+                                      final err = Validators.required(v, 'Admin Email');
+                                      if (err != null) return err;
+                                      return Validators.email(v);
+                                    },
+                                  ),
+                                ],
+                              );
+                            }
+                            return Row(
+                              children: [
+                                Expanded(
+                                  child: AppTextField(
+                                    label: 'Admin Mobile (Username)',
+                                    controller: _adminMobileController,
+                                    prefixIcon: Icons.phone_android_rounded,
+                                    keyboardType: TextInputType.phone,
+                                    validator: (v) {
+                                      final err = Validators.required(v, 'Admin Mobile');
+                                      if (err != null) return err;
+                                      return Validators.phone(v);
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: AppTextField(
+                                    label: 'Admin Email',
+                                    controller: _adminEmailController,
+                                    prefixIcon: Icons.email_rounded,
+                                    keyboardType: TextInputType.emailAddress,
+                                    validator: (v) {
+                                      final err = Validators.required(v, 'Admin Email');
+                                      if (err != null) return err;
+                                      return Validators.email(v);
+                                    },
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? AppColors.surfaceDark
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? AppColors.borderDark
+                                  : AppColors.borderLight,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.key_rounded, size: 14, color: AppColors.goldDark),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  _adminMobileController.text.trim().length >= 10
+                                      ? 'Default Temporary Password: Welcome@${_adminMobileController.text.trim()}'
+                                      : 'Default Temporary Password: Welcome@<AdminMobileNumber>',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.slate500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 28),
 

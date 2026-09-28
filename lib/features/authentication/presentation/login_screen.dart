@@ -19,7 +19,7 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _identifierController = TextEditingController(text: 'admin@society.com');
+  final _identifierController = TextEditingController(text: '9876543210');
   final _passwordController = TextEditingController(text: 'admin123');
   String _selectedRole = 'Society Admin';
 
@@ -240,8 +240,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           AppTextField(
                             key: const Key('login_identifier_field'),
                             controller: _identifierController,
-                            label: 'Email or Mobile Number',
-                            hint: 'name@society.com or 9876543210',
+                            label: 'Mobile Number (Username) or Email',
+                            hint: 'e.g. 9876543210 or name@society.com',
                             prefixIcon: Icons.person_outline,
                             keyboardType: TextInputType.emailAddress,
                             validator: Validators.emailOrMobile,
@@ -315,10 +315,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             spacing: 8,
                             runSpacing: 8,
                             children: [
-                              _buildRolePill('Society Admin', 'admin@society.com', 'admin123', Icons.admin_panel_settings_outlined),
-                              _buildRolePill('Resident', 'resident@society.com', 'resident123', Icons.home_outlined),
-                              _buildRolePill('Super Admin', 'superadmin@society.com', 'super123', Icons.security_outlined),
-                              _buildRolePill('Security', 'security@society.com', 'security123', Icons.shield_outlined),
+                              _buildRolePill('Society Admin', '9876543210', 'admin123', Icons.admin_panel_settings_outlined),
+                              _buildRolePill('Super Admin', '9998887776', 'super123', Icons.security_outlined),
+                              _buildRolePill('Resident', '9123456780', 'resident123', Icons.home_outlined),
+                              _buildRolePill('Security', '9123456782', 'security123', Icons.shield_outlined),
                             ],
                           ),
                         ],

@@ -8,6 +8,9 @@ class User {
   final Role role;
   final String societyId;
   final String societyName;
+  final String? flatId;
+  final String? flatNumber;
+  final bool mustChangePassword;
   final String? profilePhotoUrl;
   final DateTime createdAt;
 
@@ -19,6 +22,9 @@ class User {
     required this.role,
     required this.societyId,
     required this.societyName,
+    this.flatId,
+    this.flatNumber,
+    this.mustChangePassword = false,
     this.profilePhotoUrl,
     required this.createdAt,
   });
@@ -31,6 +37,9 @@ class User {
     Role? role,
     String? societyId,
     String? societyName,
+    String? flatId,
+    String? flatNumber,
+    bool? mustChangePassword,
     String? profilePhotoUrl,
     DateTime? createdAt,
   }) {
@@ -42,6 +51,9 @@ class User {
       role: role ?? this.role,
       societyId: societyId ?? this.societyId,
       societyName: societyName ?? this.societyName,
+      flatId: flatId ?? this.flatId,
+      flatNumber: flatNumber ?? this.flatNumber,
+      mustChangePassword: mustChangePassword ?? this.mustChangePassword,
       profilePhotoUrl: profilePhotoUrl ?? this.profilePhotoUrl,
       createdAt: createdAt ?? this.createdAt,
     );
@@ -56,6 +68,9 @@ class User {
       'role': role.code,
       'societyId': societyId,
       'societyName': societyName,
+      'flatId': flatId,
+      'flatNumber': flatNumber,
+      'mustChangePassword': mustChangePassword,
       'profilePhotoUrl': profilePhotoUrl,
       'createdAt': createdAt.toIso8601String(),
     };
@@ -68,8 +83,11 @@ class User {
       name: map['name'] as String,
       mobile: map['mobile'] as String,
       role: Role.fromString(map['role'] as String?),
-      societyId: map['societyId'] as String,
+      societyId: map['societyId'] as String? ?? '',
       societyName: map['societyName'] as String? ?? 'Society',
+      flatId: map['flatId'] as String?,
+      flatNumber: map['flatNumber'] as String?,
+      mustChangePassword: map['mustChangePassword'] as bool? ?? false,
       profilePhotoUrl: map['profilePhotoUrl'] as String?,
       createdAt: map['createdAt'] != null
           ? DateTime.parse(map['createdAt'] as String)

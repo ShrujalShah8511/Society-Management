@@ -44,14 +44,6 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final userMap = jsonDecode(userData) as Map<String, dynamic>;
       final user = User.fromMap(userMap);
-      if (user.id == 'usr-admin-001') {
-        final updatedAdmin = user.copyWith(
-          name: 'Shrujal Shah',
-          societyName: 'Shyam Heights',
-        );
-        await _sessionStorage.saveUserData(jsonEncode(updatedAdmin.toMap()));
-        return updatedAdmin;
-      }
       return user;
     } catch (_) {
       await _sessionStorage.clear();
@@ -86,11 +78,49 @@ class AuthRepositoryImpl implements AuthRepository {
     required String userId,
     required String currentPassword,
     required String newPassword,
-  }) {
-    return _dataSource.changePassword(
+  }) async {
+    await _dataSource.changePassword(
       userId: userId,
       currentPassword: currentPassword,
       newPassword: newPassword,
     );
+    final userData = await _sessionStorage.getUserData();
+    if (userData != null) {
+      try {
+        final userMap = jsonDecode(userData) as Map<String, dynamic>;
+        if (userMap['id'] == userId) {
+          final updatedUser = User.fromMap(userMap).copyWith(mustChangePassword: false);
+          await _sessionStorage.saveUserData(jsonEncode(updatedUser.toMap()));
+        }
+      } catch (_) {}
+    }
+  }
+
+  @override
+  Future<List<User>> getUsers({String? societyId}) {
+    return _dataSource.getUsers(societyId: societyId);
+  }
+
+  @override
+  Future<User> createUser({
+    required User user,
+    required String temporaryPassword,
+  }) {
+    return _dataSource.createUser(user: user, temporaryPassword: temporaryPassword);
+  }
+
+  @override
+  Future<User> updateUser(User user) {
+    return _dataSource.updateUser(user);
+  }
+
+  @override
+  Future<void> deleteUser(String userId) {
+    return _dataSource.deleteUser(userId);
+  }
+
+  @override
+  String generateNextUserId(String city) {
+    return _dataSource.generateNextUserId(city);
   }
 }

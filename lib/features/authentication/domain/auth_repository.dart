@@ -27,4 +27,17 @@ abstract class AuthRepository {
     required String currentPassword,
     required String newPassword,
   });
+
+  Future<List<User>> getUsers({String? societyId});
+
+  Future<User> createUser({
+    required User user,
+    required String temporaryPassword,
+  });
+
+  Future<User> updateUser(User user);
+
+  Future<void> deleteUser(String userId);
+
+  String generateNextUserId(String city);
 }

@@ -46,6 +46,10 @@ enum Permission {
   viewDashboard('view_dashboard'),
   viewFullAnalytics('view_full_analytics'),
 
+  // Users & Administration
+  viewUsers('view_users'),
+  manageUsers('manage_users'),
+
   // Profile & Settings
   editOwnProfile('edit_own_profile'),
   manageSettings('manage_settings');
@@ -71,6 +75,8 @@ class RolePermissions {
       Permission.manageFloors,
       Permission.viewFlats,
       Permission.manageFlats,
+      Permission.viewUsers,
+      Permission.manageUsers,
       Permission.viewDashboard,
       Permission.viewFullAnalytics,
       Permission.editOwnProfile,
@@ -79,13 +85,14 @@ class RolePermissions {
     Role.societyAdmin: {
       Permission.viewSociety,
       Permission.editSociety,
-      Permission.switchSociety,
       Permission.viewTowers,
       Permission.manageTowers,
       Permission.viewFloors,
       Permission.manageFloors,
       Permission.viewFlats,
       Permission.manageFlats,
+      Permission.viewUsers,
+      Permission.manageUsers,
       Permission.viewDashboard,
       Permission.viewFullAnalytics,
       Permission.editOwnProfile,
@@ -154,4 +161,10 @@ class RolePermissions {
 
   static bool canDeleteSociety(Role role) =>
       hasPermission(role, Permission.deleteSociety);
+
+  static bool canSwitchSociety(Role role) =>
+      hasPermission(role, Permission.switchSociety);
+
+  static bool canManageUsers(Role role) =>
+      hasPermission(role, Permission.manageUsers);
 }

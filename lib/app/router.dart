@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../core/constants/route_constants.dart';
 import '../core/widgets/app_scaffold.dart';
 import '../features/authentication/presentation/auth_notifier.dart';
+import '../features/authentication/presentation/force_change_password_screen.dart';
 import '../features/authentication/presentation/forgot_password_screen.dart';
 import '../features/authentication/presentation/login_screen.dart';
 import '../features/authentication/presentation/profile_screen.dart';
@@ -16,6 +17,7 @@ import '../features/society/presentation/floor_list_screen.dart';
 import '../features/society/presentation/society_list_screen.dart';
 import '../features/society/presentation/society_profile_screen.dart';
 import '../features/society/presentation/tower_list_screen.dart';
+import '../features/users/presentation/user_management_screen.dart';
 
 class _RouterRefreshNotifier extends ChangeNotifier {
   _RouterRefreshNotifier(Ref ref) {
@@ -49,6 +51,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         return RouteConstants.loginPath;
       }
 
+      // Mandatory Password Change Guard
+      final mustChangePass = authState.user?.mustChangePassword == true;
+      final isForceChangePass = currentLoc == RouteConstants.forceChangePasswordPath;
+
+      if (mustChangePass) {
+        return isForceChangePass ? null : RouteConstants.forceChangePasswordPath;
+      } else if (isForceChangePass) {
+        return RouteConstants.dashboardPath;
+      }
+
       // If user is authenticated and trying to hit login/splash/forgot-password:
       if (isLoggingIn || isSplash || isForgotPassword) {
         return RouteConstants.dashboardPath;
@@ -65,6 +77,12 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       if (isAdminRoute &&
           !RolePermissions.hasPermission(userRole, Permission.viewTowers)) {
+        return RouteConstants.dashboardPath;
+      }
+
+      // Users route guard
+      if (currentLoc.startsWith(RouteConstants.usersPath) &&
+          !RolePermissions.hasPermission(userRole, Permission.viewUsers)) {
         return RouteConstants.dashboardPath;
       }
 
@@ -88,6 +106,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteConstants.forgotPasswordPath,
         builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: RouteConstants.forceChangePasswordPath,
+        builder: (context, state) => const ForceChangePasswordScreen(),
       ),
 
       // Application Shell Route (with sidebar/bottom bar)
@@ -119,6 +141,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: RouteConstants.flatsPath,
             builder: (context, state) => const FlatListScreen(),
+          ),
+          GoRoute(
+            path: RouteConstants.usersPath,
+            builder: (context, state) => const UserManagementScreen(),
           ),
           GoRoute(
             path: RouteConstants.profilePath,

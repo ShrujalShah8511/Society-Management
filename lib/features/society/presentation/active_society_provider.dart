@@ -4,6 +4,8 @@ import '../../../app/providers.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/services/push_notification_service.dart';
 import '../../../core/utils/browser_branding_service.dart';
+import '../../authentication/presentation/auth_notifier.dart';
+import '../../role/domain/role.dart';
 import '../domain/society.dart';
 import '../domain/society_repository.dart';
 
@@ -41,9 +43,17 @@ class ActiveSocietyState {
 
 class ActiveSocietyNotifier extends StateNotifier<ActiveSocietyState> {
   final SocietyRepository _repository;
+  final Ref? _ref;
 
-  ActiveSocietyNotifier(this._repository) : super(const ActiveSocietyState()) {
+  ActiveSocietyNotifier(this._repository, [this._ref]) : super(const ActiveSocietyState()) {
     loadSocieties();
+    _ref?.listen(authNotifierProvider, (prev, next) {
+      if (prev?.user?.id != next.user?.id ||
+          prev?.user?.societyId != next.user?.societyId ||
+          prev?.user?.role != next.user?.role) {
+        loadSocieties();
+      }
+    });
   }
 
   void _syncBranding(Society? society) {
@@ -63,11 +73,26 @@ class ActiveSocietyNotifier extends StateNotifier<ActiveSocietyState> {
   Future<void> loadSocieties({String? preferredActiveId}) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
-      final list = await _repository.getSocieties();
+      var list = await _repository.getSocieties();
       list.sort((a, b) => (a.createdAt ?? a.updatedAt).compareTo(b.createdAt ?? b.updatedAt));
+
+      final authUser = _ref?.read(authNotifierProvider).user;
+      final isSuperAdmin = authUser?.role == Role.superAdmin;
+
+      // Multi-tenancy isolation: non-super admin users only see their assigned society
+      if (!isSuperAdmin && authUser != null && authUser.societyId.isNotEmpty) {
+        final scopedList = list.where((s) => s.id == authUser.societyId).toList();
+        if (scopedList.isNotEmpty) {
+          list = scopedList;
+        }
+      }
+
       Society? currentActive;
 
-      if (preferredActiveId != null) {
+      if (!isSuperAdmin && authUser != null && authUser.societyId.isNotEmpty) {
+        final matches = list.where((s) => s.id == authUser.societyId);
+        currentActive = matches.isNotEmpty ? matches.first : (list.isNotEmpty ? list.first : null);
+      } else if (preferredActiveId != null) {
         final matches = list.where((s) => s.id == preferredActiveId);
         currentActive = matches.isNotEmpty ? matches.first : (list.isNotEmpty ? list.first : null);
       } else if (state.activeSociety != null && list.any((s) => s.id == state.activeSociety!.id)) {
@@ -95,6 +120,14 @@ class ActiveSocietyNotifier extends StateNotifier<ActiveSocietyState> {
   }
 
   Future<void> selectSociety(String societyId) async {
+    final authUser = _ref?.read(authNotifierProvider).user;
+    final isSuperAdmin = authUser?.role == Role.superAdmin;
+    if (!isSuperAdmin && authUser != null && authUser.societyId.isNotEmpty) {
+      if (societyId != authUser.societyId) {
+        return; // Disallow switching outside assigned society
+      }
+    }
+
     final matches = state.allSocieties.where((s) => s.id == societyId);
     final matched = matches.isNotEmpty
         ? matches.first
@@ -137,5 +170,5 @@ class ActiveSocietyNotifier extends StateNotifier<ActiveSocietyState> {
 final activeSocietyProvider =
     StateNotifierProvider<ActiveSocietyNotifier, ActiveSocietyState>((ref) {
   final repository = ref.watch(societyRepositoryProvider);
-  return ActiveSocietyNotifier(repository);
+  return ActiveSocietyNotifier(repository, ref);
 });

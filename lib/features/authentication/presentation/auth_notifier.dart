@@ -126,11 +126,63 @@ class AuthNotifier extends StateNotifier<AuthState> {
         currentPassword: currentPassword,
         newPassword: newPassword,
       );
+      state = state.copyWith(
+        user: state.user?.copyWith(mustChangePassword: false),
+        errorMessage: null,
+      );
       return true;
     } catch (e) {
       state = state.copyWith(errorMessage: e.toString());
       return false;
     }
+  }
+
+  Future<List<User>> getUsers({String? societyId}) {
+    return _repository.getUsers(societyId: societyId);
+  }
+
+  Future<User> createUser({
+    required User user,
+    required String temporaryPassword,
+  }) {
+    return _repository.createUser(user: user, temporaryPassword: temporaryPassword);
+  }
+
+  Future<void> deleteUser(String userId) {
+    return _repository.deleteUser(userId);
+  }
+
+  String generateNextUserId(String city) {
+    return _repository.generateNextUserId(city);
+  }
+
+  /// Super Admin only: impersonate another user's session.
+  /// The original Super Admin user is stored so they can exit impersonation.
+  User? _originalSuperAdmin;
+
+  bool get isImpersonating => _originalSuperAdmin != null;
+  User? get originalSuperAdmin => _originalSuperAdmin;
+
+  /// Activate impersonation as [targetUser]. Only callable when current user is Super Admin.
+  void impersonateUser(User targetUser) {
+    if (state.user?.role != Role.superAdmin && !isImpersonating) return;
+    _originalSuperAdmin ??= state.user; // Save the original SA once
+    state = state.copyWith(
+      status: AuthStatus.authenticated,
+      user: targetUser,
+      errorMessage: null,
+    );
+  }
+
+  /// Exit impersonation and restore the original Super Admin session.
+  void exitImpersonation() {
+    if (_originalSuperAdmin == null) return;
+    state = state.copyWith(
+      status: AuthStatus.authenticated,
+      user: _originalSuperAdmin,
+      errorMessage: null,
+    );
+    _originalSuperAdmin = null;
   }
 }
 

@@ -9,6 +9,8 @@ import '../animations/app_animations.dart';
 import '../constants/app_constants.dart';
 import '../constants/route_constants.dart';
 import '../theme/app_colors.dart';
+import '../../features/notifications/presentation/notification_drawer.dart';
+import '../../features/notifications/presentation/notification_provider.dart';
 import 'confirm_dialog.dart';
 import 'responsive_layout.dart';
 import 'society_logo_widget.dart';
@@ -77,6 +79,15 @@ const List<NavItem> appNavItems = [
     requiredPermission: Permission.manageAllSocieties,
   ),
   NavItem(
+    title: 'Users & Roles',
+    shortTitle: 'Users',
+    category: 'ORGANIZATION',
+    icon: Icons.people_alt_outlined,
+    activeIcon: Icons.people_alt_rounded,
+    routePath: RouteConstants.usersPath,
+    requiredPermission: Permission.viewUsers,
+  ),
+  NavItem(
     title: 'Society Profile',
     category: 'ORGANIZATION',
     icon: Icons.apartment_outlined,
@@ -142,6 +153,7 @@ class AppScaffold extends ConsumerWidget {
     }
 
     return Scaffold(
+      endDrawer: const NotificationDrawer(),
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
       body: Row(
         children: [
@@ -324,11 +336,57 @@ class AppScaffold extends ConsumerWidget {
             child: Column(
               children: [
                 _buildGlobalTopBar(context, ref, currentRoute, user, isDark),
+                // Impersonation Banner — shown when Super Admin is logged in as another user
+                _buildImpersonationBanner(context, ref, isDark),
                 Expanded(child: child),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // --- Impersonation Banner ---
+  // Shown when Super Admin has impersonated another user's session.
+  Widget _buildImpersonationBanner(BuildContext context, WidgetRef ref, bool isDark) {
+    final authNotifier = ref.read(authNotifierProvider.notifier);
+    if (!authNotifier.isImpersonating) return const SizedBox.shrink();
+
+    final currentUser = ref.watch(authNotifierProvider).user;
+    return Material(
+      color: AppColors.gold.withValues(alpha: 0.95),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        child: Row(
+          children: [
+            const Icon(Icons.switch_account_rounded, size: 16, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                '⚡ Impersonating: ${currentUser?.name ?? 'Unknown'} '
+                '(${currentUser?.role.displayName ?? ''}) — '
+                'You are viewing as this user. Changes affect their account.',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            TextButton.icon(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.white.withValues(alpha: 0.2),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              icon: const Icon(Icons.logout_rounded, size: 14),
+              label: const Text('Exit Impersonation', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+              onPressed: () => authNotifier.exitImpersonation(),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -409,31 +467,41 @@ class AppScaffold extends ConsumerWidget {
           const SizedBox(width: 6),
 
           // Notification Bell
-          Stack(
-            alignment: Alignment.topRight,
-            children: [
-              IconButton(
-                icon: Icon(
-                  Icons.notifications_none_rounded,
-                  size: 20,
-                  color: isDark ? AppColors.slate300 : AppColors.slate600,
+          Consumer(
+            builder: (context, ref, _) {
+              final unreadCount = ref.watch(notificationNotifierProvider).unreadCount;
+              return Builder(
+                builder: (ctx) => Stack(
+                  alignment: Alignment.topRight,
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        unreadCount > 0 ? Icons.notifications_active_rounded : Icons.notifications_none_rounded,
+                        size: 20,
+                        color: unreadCount > 0
+                            ? AppColors.primary
+                            : (isDark ? AppColors.slate300 : AppColors.slate600),
+                      ),
+                      tooltip: unreadCount > 0 ? 'Notifications ($unreadCount)' : 'Notifications',
+                      onPressed: () => Scaffold.of(ctx).openEndDrawer(),
+                    ),
+                    if (unreadCount > 0)
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: AppColors.error,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-                tooltip: 'Notifications',
-                onPressed: () {},
-              ),
-              Positioned(
-                top: 8,
-                right: 8,
-                child: Container(
-                  width: 7,
-                  height: 7,
-                  decoration: const BoxDecoration(
-                    color: AppColors.primary,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-            ],
+              );
+            },
           ),
         ],
       ),
@@ -457,6 +525,38 @@ class AppScaffold extends ConsumerWidget {
           authState.role,
           Permission.manageAllSocieties,
         );
+
+        if (!isSuperAdmin) {
+          // Society Admin and non-super admins are locked to their own society
+          return Container(
+            padding: isMobile
+                ? const EdgeInsets.symmetric(horizontal: 14, vertical: 10)
+                : const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.surfaceDarkCard : (isMobile ? AppColors.slate100 : AppColors.primaryLight),
+              borderRadius: BorderRadius.circular(isMobile ? 12 : 20),
+              border: Border.all(
+                color: isDark ? AppColors.borderDark : (isMobile ? AppColors.borderLight : AppColors.primary.withValues(alpha: 0.3)),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: isMobile ? MainAxisSize.max : MainAxisSize.min,
+              children: [
+                const PulsingStatusDot(color: AppColors.primary, size: 6),
+                const SizedBox(width: 8),
+                Text(
+                  activeSociety?.name ?? authState.user?.societyName ?? 'My Society',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? AppColors.slate200 : AppColors.primaryDark,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          );
+        }
 
         return PopupMenuButton<String>(
           tooltip: 'Switch Active Society',
@@ -850,6 +950,7 @@ class AppScaffold extends ConsumerWidget {
 
     return Scaffold(
       drawer: _buildMobileDrawer(context, ref, items, currentRoute, isDark),
+      endDrawer: const NotificationDrawer(),
       appBar: AppBar(
         leading: Builder(
           builder: (context) => IconButton(
@@ -881,6 +982,41 @@ class AppScaffold extends ConsumerWidget {
           ],
         ),
         actions: [
+          // Notification Bell
+          Consumer(
+            builder: (context, ref, _) {
+              final unreadCount = ref.watch(notificationNotifierProvider).unreadCount;
+              return Builder(
+                builder: (ctx) => Stack(
+                  alignment: Alignment.topRight,
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        unreadCount > 0 ? Icons.notifications_active_rounded : Icons.notifications_none_rounded,
+                        size: 20,
+                        color: unreadCount > 0 ? AppColors.primary : (isDark ? AppColors.slate300 : AppColors.slate600),
+                      ),
+                      tooltip: 'Notifications',
+                      onPressed: () => Scaffold.of(ctx).openEndDrawer(),
+                    ),
+                    if (unreadCount > 0)
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Container(
+                          width: 7,
+                          height: 7,
+                          decoration: const BoxDecoration(
+                            color: AppColors.error,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            },
+          ),
           // Theme Toggle
           IconButton(
             icon: Icon(
@@ -980,7 +1116,13 @@ class AppScaffold extends ConsumerWidget {
             ),
         ],
       ),
-      body: child,
+      body: Column(
+        children: [
+          // Impersonation Banner — shown when Super Admin is logged in as another user
+          _buildImpersonationBanner(context, ref, isDark),
+          Expanded(child: child),
+        ],
+      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,

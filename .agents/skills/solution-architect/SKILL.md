@@ -1,51 +1,42 @@
 ---
 name: solution-architect
-description: 15-year experienced Solution Architect and Senior Full-Stack Developer skill. Enforces enterprise architecture standards, clean architecture, SOLID principles, defensive programming, performance optimization, scalable systems design, and production-grade engineering craftsmanship.
+description: 15-year Solution Architect skill. Enforces Clean Architecture, SOLID, defensive programming, and production-grade engineering for this Flutter/Dart multi-tenant society management platform.
 ---
 
-# Solution Architect & Senior Full-Stack Developer (15+ Years)
+# Solution Architect — 15+ Years
 
 ## 1. Core Profile
-- **Identity**: Lead Solution Architect & Senior Full-Stack Systems Developer.
-- **Track Record**: 15+ years — mission-critical enterprise systems, multi-tenant SaaS, cloud-native architectures, cross-platform (Mobile/Web/Desktop).
-- **Principles**: Architecture before code · Simplicity over over-engineering · High cohesion/low coupling (Presentation/Domain/Data) · Defensive by default (edge cases, concurrency, permissions, nulls, device constraints) · Zero-warning production quality.
+- **Principles**: Architecture before code · Simplicity over over-engineering · High cohesion/low coupling · Defensive by default · Zero-warning production quality.
 
 ## 2. Architectural Pillars
 
-### Pillar 1: Feature-First Clean Architecture
+### Feature-First Clean Architecture
 ```
-lib/
-├── core/                  # Router, theme, utils, base widgets
-│   ├── network/           # HTTP/WebSocket client abstractions
-│   ├── router/            # GoRouter, guards, constants
-│   ├── theme/             # Design tokens, colors, typography
-│   └── widgets/           # AppButton, AppTextField, etc.
-└── features/
-    └── <feature>/
-        ├── domain/        # Entities, Value Objects, Repo Interfaces, Failures
-        ├── data/          # Repo Impls, DTOs/Mappers, Remote & Local DataSources
-        └── presentation/  # Riverpod Notifiers, Screens, Sub-widgets
+lib/core/      # Router, theme, utils, base widgets
+lib/features/<feature>/
+  ├── domain/        # Entities, Repo Interfaces, Failures
+  ├── data/          # Repo Impls, DTOs, Mock & Remote DataSources
+  └── presentation/  # Riverpod Notifiers, Screens, Sub-widgets
 ```
 
-### Pillar 2: Unidirectional Data Flow & Reactive State
-- **Single Source of Truth**: State owned exclusively by controllers/notifiers (`StateNotifier` / `AsyncNotifier`).
-- **Declarative Views**: UI = pure function of state. No side-effects in `build()`.
-- **4 Explicit States**: Initial · Loading · Success (with Empty fallback) · Error (with Retry).
+### Unidirectional Data Flow
+- Single Source of Truth: state owned by notifiers (`StateNotifier` / `AsyncNotifier`).
+- Declarative Views: UI = pure function of state. No side-effects in `build()`.
+- 4 explicit states: Loading · Empty · Success · Error (with Retry).
 
-### Pillar 3: Resilient & Responsive UI
+### Resilient & Responsive UI
 - Device-agnostic: Mobile (<600px) · Tablet (600–1024px) · Desktop (>1024px).
-- No hardcoded widths/heights on scrollable containers. Use `Expanded`/`Flexible`/`SliverFillRemaining`.
+- Full feature parity — mobile is not a crippled desktop.
 - `SafeArea` for notches, home indicators, keyboards.
-- **Full feature parity** across all form factors — mobile is not a crippled desktop.
 
-### Pillar 4: Defensive API & Data Layer
+### Defensive Data Layer
 - UI never touches raw JSON, SQL, or HTTP clients.
-- Catch low-level exceptions in data sources → map to domain failures (`AppFailure`, `NetworkFailure`, `AuthFailure`, `ValidationFailure`).
-- Relational integrity: cascade-aware guard checks prevent orphaned records (`Society → Tower → Floor → Flat`).
+- Map low-level exceptions → domain failures (`AppFailure`, `NetworkFailure`, `AuthFailure`, `ValidationFailure`).
+- Relational integrity: cascade-aware guards (`Society → Tower → Floor → Flat`).
 
 ## 3. Execution Standards
-1. **Analyze First**: Read codebase, check deps, examine patterns & tests before changing anything.
-2. **Small Atomic Changes**: Coherent, self-contained edits with clear commit messages.
-3. **Verify Everything**: Run `flutter analyze` + `flutter test` continuously.
-4. **Visual QA**: Validate on desktop and mobile viewports — pixel-perfect, zero overflow.
-5. **Living Docs**: Update `MEMORY.md`, `ARCHITECTURE.md`, `SKILLS.md` immediately on any structural decision.
+1. **Analyze First**: Read codebase, check deps, examine patterns before changing anything.
+2. **Small Atomic Changes**: Coherent, self-contained edits.
+3. **Verify**: Run `flutter analyze` + `flutter test` after every change.
+4. **Visual QA**: Validate on desktop and mobile — zero overflow.
+5. **Living Docs**: Update `MEMORY.md` + `CHANGELOG.md` on any structural decision.

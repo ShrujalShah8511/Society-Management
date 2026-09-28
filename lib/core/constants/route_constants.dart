@@ -13,8 +13,10 @@ class RouteConstants {
   static const String towersPath = '/society/towers';
   static const String floorsPath = '/society/floors';
   static const String flatsPath = '/society/flats';
+  static const String usersPath = '/users';
   static const String profilePath = '/profile';
   static const String settingsPath = '/settings';
+  static const String forceChangePasswordPath = '/force-change-password';
 
   // Route names
   static const String splashName = 'splash';
@@ -25,6 +27,8 @@ class RouteConstants {
   static const String towersName = 'towers';
   static const String floorsName = 'floors';
   static const String flatsName = 'flats';
+  static const String usersName = 'users';
   static const String profileName = 'profile';
   static const String settingsName = 'settings';
+  static const String forceChangePasswordName = 'force-change-password';
 }

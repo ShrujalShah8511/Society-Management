@@ -33,8 +33,8 @@ class AuthMockDataSource implements AuthDataSource {
       name: 'Shrujal Shah',
       mobile: '9998887776',
       role: Role.superAdmin,
-      societyId: AppConstants.defaultSocietyId,
-      societyName: 'Shyam Heights',
+      societyId: '',          // Super Admin is platform-level, not tied to any society
+      societyName: 'Platform Admin',
       profilePhotoUrl: null,
       createdAt: DateTime.now().subtract(const Duration(days: 120)),
     );
@@ -186,5 +186,64 @@ class AuthMockDataSource implements AuthDataSource {
 
     _passwords[existingUser.email.toLowerCase()] = newPassword;
     _passwords[existingUser.mobile] = newPassword;
+    _users[userId] = existingUser.copyWith(mustChangePassword: false);
+  }
+
+  static int _masterUserSequence = 7;
+
+  @override
+  String generateNextUserId(String city) {
+    final cleanCity = city.trim().replaceAll(RegExp(r'[^a-zA-Z]'), '').toUpperCase();
+    final cityCode = cleanCity.length >= 3 ? cleanCity.substring(0, 3) : (cleanCity.padRight(3, 'X'));
+    final seq = _masterUserSequence++;
+    final numStr = seq.toString().padLeft(3, '0');
+    return 'usr-$cityCode-$numStr';
+  }
+
+  @override
+  Future<List<User>> getUsers({String? societyId}) async {
+    await Future.delayed(const Duration(milliseconds: 150));
+    final users = _users.values.toList();
+    if (societyId != null && societyId.isNotEmpty) {
+      // Return users belonging to that society; super admins (empty societyId) are excluded from society-scoped lists
+      return users.where((u) => u.societyId == societyId).toList()
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    }
+    return users..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+  }
+
+  @override
+  Future<User> createUser({
+    required User user,
+    required String temporaryPassword,
+  }) async {
+    await Future.delayed(const Duration(milliseconds: 250));
+    final duplicateMobile = _users.values.any((u) => u.mobile == user.mobile && u.id != user.id);
+    if (duplicateMobile) {
+      throw const ValidationFailure('A user with this mobile number already exists');
+    }
+
+    _registerUser(user, temporaryPassword);
+    return user;
+  }
+
+  @override
+  Future<User> updateUser(User user) async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    if (!_users.containsKey(user.id)) {
+      throw const NotFoundFailure('User not found');
+    }
+    _users[user.id] = user;
+    return user;
+  }
+
+  @override
+  Future<void> deleteUser(String userId) async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    final user = _users.remove(userId);
+    if (user != null) {
+      _passwords.remove(user.email.toLowerCase());
+      _passwords.remove(user.mobile);
+    }
   }
 }

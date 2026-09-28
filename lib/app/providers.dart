@@ -1,10 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../core/config/app_config.dart';
 import '../core/storage/file_storage_service.dart';
 import '../core/storage/session_storage.dart';
 import '../core/storage/supabase_file_storage_service.dart';
-import '../features/authentication/data/auth_mock_data_source.dart';
 import '../features/authentication/data/auth_repository_impl.dart';
 import '../features/authentication/data/supabase_auth_data_source.dart';
 import '../features/authentication/domain/auth_repository.dart';
@@ -51,21 +49,17 @@ final societyDataSourceProvider = Provider<SocietyDataSource>((ref) {
   return ref.watch(supabaseSocietyDataSourceProvider);
 });
 
-final authMockDataSourceProvider = Provider<AuthMockDataSource>((ref) {
-  return AuthMockDataSource();
+final supabaseAuthDataSourceProvider = Provider<SupabaseAuthDataSource>((ref) {
+  return SupabaseAuthDataSource();
 });
 
 // Repositories
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final storage = ref.watch(sessionStorageProvider);
-  if (AppConfig.isSupabaseConfigured) {
-    return AuthRepositoryImpl(
-      dataSource: SupabaseAuthDataSource(),
-      sessionStorage: storage,
-    );
-  }
-  final dataSource = ref.watch(authMockDataSourceProvider);
-  return AuthRepositoryImpl(dataSource: dataSource, sessionStorage: storage);
+  return AuthRepositoryImpl(
+    dataSource: ref.watch(supabaseAuthDataSourceProvider),
+    sessionStorage: storage,
+  );
 });
 
 final societyRepositoryProvider = Provider<SocietyRepository>((ref) {
