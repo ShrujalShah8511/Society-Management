@@ -88,8 +88,19 @@ class _NotificationDrawerState extends ConsumerState<NotificationDrawer> {
               child: Row(
                 children: [
                   FilterChip(
-                    label: const Text('All', style: TextStyle(fontSize: 12)),
+                    label: const Text('All'),
+                    labelStyle: TextStyle(
+                      fontSize: 12,
+                      fontWeight: !_filterOnlyUnread ? FontWeight.w700 : FontWeight.w500,
+                      color: !_filterOnlyUnread ? Colors.white : (isDark ? AppColors.slate300 : AppColors.slate700),
+                    ),
                     selected: !_filterOnlyUnread,
+                    selectedColor: AppColors.primary,
+                    checkmarkColor: Colors.white,
+                    side: BorderSide(
+                      color: !_filterOnlyUnread ? AppColors.primary : (isDark ? AppColors.borderDark : AppColors.borderLight),
+                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     onSelected: (val) => setState(() => _filterOnlyUnread = false),
                     visualDensity: VisualDensity.compact,
                   ),
@@ -98,24 +109,39 @@ class _NotificationDrawerState extends ConsumerState<NotificationDrawer> {
                     label: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text('Unread', style: TextStyle(fontSize: 12)),
+                        const Text('Unread'),
                         if (notifState.unreadCount > 0) ...[
                           const SizedBox(width: 5),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                             decoration: BoxDecoration(
-                              color: AppColors.primary,
+                              color: _filterOnlyUnread ? Colors.white : AppColors.primary,
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Text(
                               '${notifState.unreadCount}',
-                              style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: _filterOnlyUnread ? AppColors.primary : Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ],
                       ],
                     ),
+                    labelStyle: TextStyle(
+                      fontSize: 12,
+                      fontWeight: _filterOnlyUnread ? FontWeight.w700 : FontWeight.w500,
+                      color: _filterOnlyUnread ? Colors.white : (isDark ? AppColors.slate300 : AppColors.slate700),
+                    ),
                     selected: _filterOnlyUnread,
+                    selectedColor: AppColors.primary,
+                    checkmarkColor: Colors.white,
+                    side: BorderSide(
+                      color: _filterOnlyUnread ? AppColors.primary : (isDark ? AppColors.borderDark : AppColors.borderLight),
+                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     onSelected: (val) => setState(() => _filterOnlyUnread = true),
                     visualDensity: VisualDensity.compact,
                   ),

@@ -152,6 +152,17 @@ class AppTheme {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         elevation: 6,
       ),
+
+      // Chip Theme
+      chipTheme: ChipThemeData(
+        backgroundColor: AppColors.surfaceLight,
+        selectedColor: AppColors.primary,
+        checkmarkColor: Colors.white,
+        labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.slate700),
+        secondaryLabelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        side: const BorderSide(color: AppColors.borderLight),
+      ),
     );
   }
 
@@ -293,6 +304,17 @@ class AppTheme {
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         elevation: 6,
+      ),
+
+      // Chip Theme
+      chipTheme: ChipThemeData(
+        backgroundColor: AppColors.surfaceDarkHigher,
+        selectedColor: AppColors.primary,
+        checkmarkColor: Colors.white,
+        labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.slate300),
+        secondaryLabelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        side: const BorderSide(color: AppColors.borderDark),
       ),
     );
   }

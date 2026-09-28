@@ -393,9 +393,28 @@ class _UserManagementScreenState extends ConsumerState<UserManagementScreen> {
   }
 
   Widget _buildFilterChip(String label, Role? role, bool isSelected) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return FilterChip(
-      label: Text(label, style: const TextStyle(fontSize: 12)),
+      label: Text(label),
+      labelStyle: TextStyle(
+        fontSize: 12,
+        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+        color: isSelected
+            ? Colors.white
+            : (isDark ? AppColors.slate300 : AppColors.slate700),
+      ),
       selected: isSelected,
+      selectedColor: AppColors.primary,
+      backgroundColor: isDark ? AppColors.surfaceDarkHigher : AppColors.surfaceLight,
+      checkmarkColor: Colors.white,
+      showCheckmark: true,
+      side: BorderSide(
+        color: isSelected
+            ? AppColors.primary
+            : (isDark ? AppColors.borderDark : AppColors.borderLight),
+        width: isSelected ? 1.4 : 1.0,
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       onSelected: (_) => ref.read(userManagementProvider.notifier).setRoleFilter(role),
       visualDensity: VisualDensity.compact,
     );
